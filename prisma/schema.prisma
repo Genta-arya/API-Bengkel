@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+// prisma/schema.prisma
+// prisma/schema.prisma
+
+model users {
+  id         Int     @id @default(autoincrement())
+  first_name String
+  last_name  String
+  email      String  @unique
+  gender     String
+  ip_address String
+  password   String? // Adding the password field with the possibility of being null
+}
+
+
+model Barcode {
+  id         Int    @id @default(autoincrement())
+  barcode    String @unique
+  barcodeUrl String
+  barang     Barang @relation(fields: [barangId], references: [id])
+  barangId   Int
+}
+
+model Transaksi {
+  id               Int               @id @default(autoincrement())
+  nama             String?
+  alamat           String
+  motor            String
+  detail           String
+  total            Float
+  tanggal          DateTime          @default(now())
+  transaksiBarangs TransaksiBarang[]
+}
+
+model TransaksiBarang {
+  id          Int       @id @default(autoincrement())
+  transaksi   Transaksi @relation(fields: [transaksiId], references: [id])
+  transaksiId Int
+  barang      Barang    @relation(fields: [barangId], references: [id])
+  barangId    Int
+  jumlah      Int
+}
+
+
+model Barang {
+  id         Int               @id @default(autoincrement())
+  nama       String            @unique
+  kode       String?           // Jika ada kode unik untuk barang, bisa ditambahkan
+  harga      Float
+  diskon     Decimal?
+  service Int @default(0)
+  modal      Int
+  laku       Int?              @default(0)
+  stok       Int
+  barcodes   Barcode[]
+  transaksis TransaksiBarang[]
+  histories  History[]
+}
+
+model History {
+  id        Int      @id @default(autoincrement())
+  barangId  Int
+  barang    Barang   @relation(fields: [barangId], references: [id])
+  nama      String
+  qty       Int
+  createdAt DateTime @default(now())
+}
+
+
+
+
+model qrcht {
+  id  Int    @id @default(autoincrement())
+  url String
+}
+
+model Auth {
+  uid       Int     @id @default(autoincrement())
+  username  String  @unique @db.VarChar(255)
+  email     String  @unique @db.VarChar(255)
+  password  String  @db.VarChar(255)
+  role      String? @db.VarChar(255)
+  name      String? @db.VarChar(255)
+  token_jwt String? @unique @db.VarChar(255)
+  otp       String?
+}
