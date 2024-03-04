@@ -43,6 +43,8 @@ model Transaksi {
   total            Float
   tanggal          DateTime          @default(now())
   transaksiBarangs TransaksiBarang[]
+  mekanik          Mekanik?          @relation(fields: [mekanikId], references: [id])
+  mekanikId        Int?
 }
 
 model TransaksiBarang {
@@ -53,6 +55,16 @@ model TransaksiBarang {
   barangId    Int
   jumlah      Int
 }
+
+model Mekanik {
+  id Int @id @default(autoincrement())
+  nama String @unique
+  noHp String?
+  transaksis Transaksi[]
+}
+
+
+
 
 
 model Barang {

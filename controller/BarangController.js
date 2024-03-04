@@ -114,6 +114,14 @@ export const EditBarang = async (req, res) => {
   }
 
   try {
+    const existingProduct = await prisma.barang.findFirst({
+      where: { nama: nama },
+    });
+
+    if (existingProduct && existingProduct.id !== parseInt(req.params.id)) {
+      return res.status(400).json({ error: "Nama produk sudah digunakan" , status: 400 });
+    }
+
     const updatedBarang = await prisma.barang.update({
       where: { id: parseInt(req.params.id) },
       data: {
@@ -173,7 +181,7 @@ export const deleteBarang = async (req, res) => {
 };
 
 export const getBarang = async (req, res) => {
-  const { page = 1, perPage = 10 } = req.query;
+  const { page = 1, perPage = 2 } = req.query;
   try {
     const skip = (page - 1) * perPage;
     const take = perPage;

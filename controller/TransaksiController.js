@@ -42,6 +42,7 @@ export const createdTransactions = async (req, res) => {
             jumlah: jumlahArray[index],
           })),
         },
+    
       },
       include: {
         transaksiBarangs: true,
@@ -96,9 +97,12 @@ export const getTransaction = async (req, res) => {
     // Menggunakan Prisma Client untuk mengambil semua transaksi dan relasi yang terkait
     const transactions = await prisma.transaksi.findMany({
       include: {
+        mekanik:true,
         transaksiBarangs: {
           include: {
             barang: true, // Mengambil detail barang
+     
+
           },
         },
       },

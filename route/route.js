@@ -34,7 +34,7 @@ router.get("/search/produk", searchBarang);
 router.get("/mekanik",getDataMekanik)
 router.get("/all/mekanik",getDataAllMekanik)
 router.get("/search/mekanik",searchMekanik)
-router.post("mekanik",createMekanik)
+router.post("/mekanik",createMekanik)
 router.put("/mekanik/:id",EditMekanik)
 router.delete("/mekanik/:id",DeleteMekanik)
 
