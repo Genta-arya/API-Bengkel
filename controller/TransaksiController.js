@@ -4,9 +4,24 @@ const prisma = new PrismaClient();
 
 export const createdTransactions = async (req, res) => {
   try {
-    const { barangId, nama, alamat, motor, detail, jumlah } = req.body;
+    const {
+      barangId,
+      nama,
+      alamat,
+      motor,
+      detail,
+      jumlah,
+      mekanikId,
+      service,
+    } = req.body;
 
-    console.log(barangId, nama, alamat, motor, detail);
+    console.log(req.body)
+
+    // Parse mekanikId to integer
+    const mekanikIds = parseInt(mekanikId, 10);
+
+    // Parse service to integer
+    const serviceCost = parseInt(service, 10);
 
     // Check if nama is not null or undefined
     if (!nama) {
@@ -28,6 +43,22 @@ export const createdTransactions = async (req, res) => {
       total += barang.harga * jumlahArray[index];
     });
 
+    // Calculate total service cost
+    // let totalServiceCost = 0;
+    // barangs.forEach((barang, index) => {
+    //   if (barang.service) {
+    //     totalServiceCost = barang.service * jumlahArray[index];
+    //   }
+    // });
+
+    // // Add service cost to total
+    // total += totalServiceCost;
+
+    // Add service cost to total transaksi
+ const totalAkhir = total + serviceCost
+
+    console.log(total + serviceCost)
+
     // Membuat transaksi baru menggunakan Prisma Client
     const newTransaction = await prisma.transaksi.create({
       data: {
@@ -35,14 +66,15 @@ export const createdTransactions = async (req, res) => {
         alamat,
         motor,
         detail,
-        total,
+        total:totalAkhir,
+        totalService:serviceCost,
+        mekanikId: mekanikIds,
         transaksiBarangs: {
           create: barangIdArray.map((id, index) => ({
             barangId: id,
             jumlah: jumlahArray[index],
           })),
         },
-    
       },
       include: {
         transaksiBarangs: true,
@@ -63,9 +95,7 @@ export const createdTransactions = async (req, res) => {
             },
           },
         });
-  
 
-        // Menambahkan data transaksi ke tabel History
         await prisma.history.create({
           data: {
             barangId: id,
@@ -85,9 +115,6 @@ export const createdTransactions = async (req, res) => {
   }
 };
 
-
-
-
 export const getTransaction = async (req, res) => {
   try {
     const { currentPage = 1, limit = 10 } = req.query;
@@ -97,12 +124,10 @@ export const getTransaction = async (req, res) => {
     // Menggunakan Prisma Client untuk mengambil semua transaksi dan relasi yang terkait
     const transactions = await prisma.transaksi.findMany({
       include: {
-        mekanik:true,
+        mekanik: true,
         transaksiBarangs: {
           include: {
             barang: true, // Mengambil detail barang
-     
-
           },
         },
       },
@@ -120,6 +145,7 @@ export const getTransaction = async (req, res) => {
     await prisma.$disconnect(); // Disconnect from the database when done
   }
 };
+
 
 export const getEarningTransaksi = async (req, res) => {
   try {
@@ -151,8 +177,8 @@ export const getEarningTransaksi = async (req, res) => {
     if (mode) {
       const currentDate = new Date();
       switch (mode) {
-        case 'harian':
-          transactions = transactions.filter(transaction => {
+        case "harian":
+          transactions = transactions.filter((transaction) => {
             const transactionDate = new Date(transaction.tanggal);
             return (
               transactionDate.getDate() === currentDate.getDate() &&
@@ -161,22 +187,25 @@ export const getEarningTransaksi = async (req, res) => {
             );
           });
           break;
-        case 'mingguan':
-          transactions = transactions.filter(transaction => {
+        case "mingguan":
+          transactions = transactions.filter((transaction) => {
             const transactionDate = new Date(transaction.tanggal);
             const firstDayOfWeek = new Date(
               currentDate.setDate(currentDate.getDate() - currentDate.getDay())
             );
             const lastDayOfWeek = new Date(
-              currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 6)
+              currentDate.setDate(
+                currentDate.getDate() - currentDate.getDay() + 6
+              )
             );
             return (
-              transactionDate >= firstDayOfWeek && transactionDate <= lastDayOfWeek
+              transactionDate >= firstDayOfWeek &&
+              transactionDate <= lastDayOfWeek
             );
           });
           break;
-        case 'bulanan':
-          transactions = transactions.filter(transaction => {
+        case "bulanan":
+          transactions = transactions.filter((transaction) => {
             const transactionDate = new Date(transaction.tanggal);
             return (
               transactionDate.getMonth() === currentDate.getMonth() &&
@@ -184,7 +213,7 @@ export const getEarningTransaksi = async (req, res) => {
             );
           });
           break;
-        case 'tahunan':
+        case "tahunan":
           // Tidak perlu filter berdasarkan tahun
           break;
         default:
@@ -209,10 +238,10 @@ export const getEarningTransaksi = async (req, res) => {
     // Mengelompokkan transaksi berdasarkan tanggal
     const groupedTransactions = transactions.reduce((acc, transaction) => {
       const transactionDate = new Date(transaction.tanggal);
-      const formattedDate = transactionDate.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: '2-digit',
-        year: '2-digit',
+      const formattedDate = transactionDate.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
       });
       if (!acc[formattedDate]) {
         acc[formattedDate] = 0;
@@ -233,11 +262,129 @@ export const getEarningTransaksi = async (req, res) => {
   } catch (error) {
     // Menangani kesalahan dan mengembalikan respons dengan pesan kesalahan
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect(); // Disconnect from the database when done
   }
 };
+
+
+
+
+
+
+
+// export const getChartTransaksi = async (req, res) => {
+//   const { mode } = req.query;
+//   try {
+//     // Ambil semua transaksi dari database
+//     let transaksis = await prisma.transaksi.findMany({
+//       include: {
+//         transaksiBarangs: {
+//           include: {
+//             barang: true,
+
+//           },
+//         },
+//       },
+//     });
+
+//     // Filter transaksi berdasarkan mode
+//     if (mode) {
+//       const currentDate = new Date();
+//       switch (mode) {
+//         case "harian":
+//           transaksis = transaksis.filter((transaksi) => {
+//             const transactionDate = new Date(transaksi.tanggal);
+//             return (
+//               transactionDate.getDate() === currentDate.getDate() &&
+//               transactionDate.getMonth() === currentDate.getMonth() &&
+//               transactionDate.getFullYear() === currentDate.getFullYear()
+//             );
+//           });
+//           break;
+//         case "mingguan":
+//           transaksis = transaksis.filter((transaksi) => {
+//             const transactionDate = new Date(transaksi.tanggal);
+//             const firstDayOfWeek = new Date(
+//               currentDate.setDate(currentDate.getDate() - currentDate.getDay())
+//             );
+//             const lastDayOfWeek = new Date(
+//               currentDate.setDate(
+//                 currentDate.getDate() - currentDate.getDay() + 6
+//               )
+//             );
+//             return (
+//               transactionDate >= firstDayOfWeek &&
+//               transactionDate <= lastDayOfWeek
+//             );
+//           });
+//           break;
+//         case "bulanan":
+//           transaksis = transaksis.filter((transaksi) => {
+//             const transactionDate = new Date(transaksi.tanggal);
+//             return (
+//               transactionDate.getMonth() === currentDate.getMonth() &&
+//               transactionDate.getFullYear() === currentDate.getFullYear()
+//             );
+//           });
+//           break;
+//         case "tahunan":
+//           // Tidak perlu filter berdasarkan tahun
+//           break;
+//         default:
+//           break;
+//       }
+//     }
+
+//     // Kelompokkan transaksi berdasarkan tanggal
+//     const groupedTransaksis = {};
+//     transaksis.forEach((transaksi) => {
+//       const transaksiDate = new Date(transaksi.tanggal);
+//       const formattedDate = transaksiDate.toLocaleDateString("id-ID", {
+//         day: "2-digit",
+//         month: "2-digit",
+//         year: "2-digit",
+//       });
+//       if (!groupedTransaksis[formattedDate]) {
+//         groupedTransaksis[formattedDate] = {
+//           totalEarning: 0,
+//           totalModalAwal: 0,
+//           totalKeuntungan: 0,
+//         };
+//       }
+//       groupedTransaksis[formattedDate].totalEarning += transaksi.total;
+//       groupedTransaksis[formattedDate].totalModalAwal +=
+//         transaksi.transaksiBarangs.reduce((acc, transaksiBarang) => {
+//           return acc + transaksiBarang.barang.modal * transaksiBarang.jumlah;
+//         }, 0);
+//       groupedTransaksis[formattedDate].totalKeuntungan +=
+//         transaksi.total -
+//         transaksi.transaksiBarangs.reduce((acc, transaksiBarang) => {
+//           return acc + transaksiBarang.barang.modal * transaksiBarang.jumlah;
+//         }, 0);
+//     });
+
+//     // Ubah objek menjadi array
+//     const groupedTransaksisArray = Object.keys(groupedTransaksis).map(
+//       (key) => ({
+//         totalEarning: groupedTransaksis[key].totalEarning,
+//         totalModalAwal: groupedTransaksis[key].totalModalAwal,
+//         totalKeuntungan: groupedTransaksis[key].totalKeuntungan,
+//         tanggal: key,
+//       })
+//     );
+//     const totalEarning = transaksis.reduce(
+//       (acc, transaksi) => acc + transaksi.total,
+//       0
+//     );
+//     // Kirim hasil ke client
+//     res.json({ data: groupedTransaksisArray, total: totalEarning });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 export const getChartTransaksi = async (req, res) => {
   const { mode } = req.query;
@@ -257,8 +404,8 @@ export const getChartTransaksi = async (req, res) => {
     if (mode) {
       const currentDate = new Date();
       switch (mode) {
-        case 'harian':
-          transaksis = transaksis.filter(transaksi => {
+        case "harian":
+          transaksis = transaksis.filter((transaksi) => {
             const transactionDate = new Date(transaksi.tanggal);
             return (
               transactionDate.getDate() === currentDate.getDate() &&
@@ -267,22 +414,25 @@ export const getChartTransaksi = async (req, res) => {
             );
           });
           break;
-        case 'mingguan':
-          transaksis = transaksis.filter(transaksi => {
+        case "mingguan":
+          transaksis = transaksis.filter((transaksi) => {
             const transactionDate = new Date(transaksi.tanggal);
             const firstDayOfWeek = new Date(
               currentDate.setDate(currentDate.getDate() - currentDate.getDay())
             );
             const lastDayOfWeek = new Date(
-              currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 6)
+              currentDate.setDate(
+                currentDate.getDate() - currentDate.getDay() + 6
+              )
             );
             return (
-              transactionDate >= firstDayOfWeek && transactionDate <= lastDayOfWeek
+              transactionDate >= firstDayOfWeek &&
+              transactionDate <= lastDayOfWeek
             );
           });
           break;
-        case 'bulanan':
-          transaksis = transaksis.filter(transaksi => {
+        case "bulanan":
+          transaksis = transaksis.filter((transaksi) => {
             const transactionDate = new Date(transaksi.tanggal);
             return (
               transactionDate.getMonth() === currentDate.getMonth() &&
@@ -290,7 +440,7 @@ export const getChartTransaksi = async (req, res) => {
             );
           });
           break;
-        case 'tahunan':
+        case "tahunan":
           // Tidak perlu filter berdasarkan tahun
           break;
         default:
@@ -300,12 +450,12 @@ export const getChartTransaksi = async (req, res) => {
 
     // Kelompokkan transaksi berdasarkan tanggal
     const groupedTransaksis = {};
-    transaksis.forEach(transaksi => {
+    transaksis.forEach((transaksi) => {
       const transaksiDate = new Date(transaksi.tanggal);
-      const formattedDate = transaksiDate.toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: '2-digit',
-        year: '2-digit',
+      const formattedDate = transaksiDate.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
       });
       if (!groupedTransaksis[formattedDate]) {
         groupedTransaksis[formattedDate] = {
@@ -315,24 +465,35 @@ export const getChartTransaksi = async (req, res) => {
         };
       }
       groupedTransaksis[formattedDate].totalEarning += transaksi.total;
-      groupedTransaksis[formattedDate].totalModalAwal += transaksi.transaksiBarangs.reduce((acc, transaksiBarang) => {
-        return acc + transaksiBarang.barang.modal * transaksiBarang.jumlah;
-      }, 0);
-      groupedTransaksis[formattedDate].totalKeuntungan += transaksi.total - transaksi.transaksiBarangs.reduce((acc, transaksiBarang) => {
-        return acc + transaksiBarang.barang.modal * transaksiBarang.jumlah;
-      }, 0);
+      groupedTransaksis[formattedDate].totalModalAwal +=
+        transaksi.transaksiBarangs.reduce((acc, transaksiBarang) => {
+          return acc + transaksiBarang.barang.modal * transaksiBarang.jumlah;
+        }, 0);
+      groupedTransaksis[formattedDate].totalKeuntungan +=
+        transaksi.total -
+        transaksi.transaksiBarangs.reduce((acc, transaksiBarang) => {
+          return acc + transaksiBarang.barang.modal * transaksiBarang.jumlah;
+        }, 0);
     });
 
     // Ubah objek menjadi array
-    const groupedTransaksisArray = Object.keys(groupedTransaksis).map(key => ({
-      totalEarning: groupedTransaksis[key].totalEarning,
-      totalModalAwal: groupedTransaksis[key].totalModalAwal,
-      totalKeuntungan: groupedTransaksis[key].totalKeuntungan,
-      tanggal: key,
-    }));
-    const totalEarning = transaksis.reduce((acc, transaksi) => acc + transaksi.total, 0);
+    const groupedTransaksisArray = Object.keys(groupedTransaksis).map(
+      (key) => ({
+        totalEarning: groupedTransaksis[key].totalEarning,
+        totalModalAwal: groupedTransaksis[key].totalModalAwal,
+        totalKeuntungan: groupedTransaksis[key].totalKeuntungan,
+        tanggal: key,
+      })
+    );
+
+    // Hitung total earning dari semua transaksi
+    const totalEarning = transaksis.reduce(
+      (acc, transaksi) => acc + transaksi.total,
+      0
+    );
+
     // Kirim hasil ke client
-    res.json({ data: groupedTransaksisArray  , total: totalEarning});
+    res.json({ data: groupedTransaksisArray, total: totalEarning });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });

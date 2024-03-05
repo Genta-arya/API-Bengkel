@@ -25,7 +25,6 @@ model users {
   password   String? // Adding the password field with the possibility of being null
 }
 
-
 model Barcode {
   id         Int    @id @default(autoincrement())
   barcode    String @unique
@@ -41,6 +40,7 @@ model Transaksi {
   motor            String
   detail           String
   total            Float
+  totalService     Float?
   tanggal          DateTime          @default(now())
   transaksiBarangs TransaksiBarang[]
   mekanik          Mekanik?          @relation(fields: [mekanikId], references: [id])
@@ -57,23 +57,19 @@ model TransaksiBarang {
 }
 
 model Mekanik {
-  id Int @id @default(autoincrement())
-  nama String @unique
-  noHp String?
+  id         Int         @id @default(autoincrement())
+  nama       String      @unique
+  noHp       String?
   transaksis Transaksi[]
 }
-
-
-
-
 
 model Barang {
   id         Int               @id @default(autoincrement())
   nama       String            @unique
-  kode       String?           // Jika ada kode unik untuk barang, bisa ditambahkan
+  kode       String? // Jika ada kode unik untuk barang, bisa ditambahkan
   harga      Float
   diskon     Decimal?
-  service Int @default(0)
+  service    Int               @default(0)
   modal      Int
   laku       Int?              @default(0)
   stok       Int
@@ -90,9 +86,6 @@ model History {
   qty       Int
   createdAt DateTime @default(now())
 }
-
-
-
 
 model qrcht {
   id  Int    @id @default(autoincrement())

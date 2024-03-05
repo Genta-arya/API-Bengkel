@@ -68,65 +68,120 @@ export const createMekanik = async (req, res) => {
 };
 
 export const EditMekanik = async (req, res) => {
-    const { id } = req.params;
-    const { nama, noHp } = req.body;
-  
-    try {
-      // Cari mekanik berdasarkan ID
-      const mekanik = await prisma.mekanik.findUnique({
-        where: {
-          id: parseInt(id),
-        },
-      });
-  
-      // Jika mekanik tidak ditemukan, kirim respons 404
-      if (!mekanik) {
-        return res.status(404).json({ message: 'Mekanik tidak ditemukan' });
-      }
-  
-      // Periksa apakah nama mekanik yang baru sudah ada di database
-      const existingMekanik = await prisma.mekanik.findFirst({
-        where: {
-          nama: nama,
-          NOT: {
-            id: parseInt(id),
-          },
-        },
-      });
-  
-      // Jika nama mekanik yang baru sudah ada di database, kirim respons 400
-      if (existingMekanik) {
-        return res.status(400).json({ message: 'Nama mekanik sudah ada di database' });
-      }
-  
-      // Perbarui nama dan nomor HP mekanik
-      const updatedMekanik = await prisma.mekanik.update({
-        where: {
-          id: parseInt(id),
-        },
-        data: {
-          nama: nama,
-          noHp: noHp,
-        },
-      });
-  
-      // Kirim respons 200 dengan data mekanik yang diperbarui
-      return res.status(200).json(updatedMekanik);
-    } catch (error) {
-      // Tangani kesalahan
-      console.error('Error:', error);
-      return res.status(500).json({ message: 'Terjadi kesalahan saat memperbarui mekanik' });
-    } finally {
-      // Tutup koneksi Prisma
-      await prisma.$disconnect();
-    }
-  };
-export const DeleteMekanik = async (req, res) => {
+  const { id } = req.params;
+  const { nama, noHp } = req.body;
+
   try {
-  } catch (error) {}
+    // Cari mekanik berdasarkan ID
+    const mekanik = await prisma.mekanik.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    if (!mekanik) {
+      return res.status(404).json({ message: "Mekanik tidak ditemukan" });
+    }
+
+    const existingMekanik = await prisma.mekanik.findFirst({
+      where: {
+        nama: nama,
+        NOT: {
+          id: parseInt(id),
+        },
+      },
+    });
+
+    if (existingMekanik) {
+      return res
+        .status(400)
+        .json({ message: "Nama mekanik sudah ada" });
+    }
+
+    const updatedMekanik = await prisma.mekanik.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        nama: nama,
+        noHp: noHp,
+      },
+    });
+
+    return res.status(200).json(updatedMekanik);
+  } catch (error) {
+    // Tangani kesalahan
+    console.error("Error:", error);
+    return res
+      .status(500)
+      .json({ message: "Terjadi kesalahan saat memperbarui mekanik" });
+  } finally {
+    await prisma.$disconnect();
+  }
+};
+
+export const DeleteMekanik = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await prisma.transaksi.deleteMany({
+      where: {
+        mekanikId: parseInt(id),
+      },
+    });
+
+    await prisma.mekanik.delete({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    res.status(200).json({ message: "Mekanik berhasil dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menghapus mekanik" });
+  } finally {
+    await prisma.$disconnect();
+  }
 };
 
 export const searchMekanik = async (req, res) => {
   try {
-  } catch (error) {}
+    let { q, page = 1, perPage = 1 } = req.query;
+
+    const skip = (page - 1) * perPage;
+    const take = perPage;
+
+    const mekanik = await prisma.mekanik.findMany({
+      where: {
+        nama: {
+          contains: q,
+          mode: "insensitive",
+        },
+      },
+      skip,
+      take,
+    });
+
+    if (mekanik.length === 0) {
+      return res.status(404).json({ message: "No barang found" });
+    }
+
+    const totalItems = await prisma.mekanik.count({
+      where: {
+        nama: {
+          contains: q,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    res.status(200).json({
+      data: mekanik,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalItems / perPage),
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
