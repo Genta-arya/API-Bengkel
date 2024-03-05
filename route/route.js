@@ -13,6 +13,7 @@ import { createdTransactions, getChartTransaksi, getEarningTransaksi, getTransac
 import { Logout, handleLogin, handleRegister, isLoggIn } from "../controller/AuthController.js";
 import { getHistory } from "../controller/HistoryController.js";
 import { DeleteMekanik, EditMekanik, createMekanik, getDataAllMekanik, getDataMekanik, searchMekanik } from "../controller/MekanikController.js";
+import { sendMessage } from "../Config/Twilio/Config.js";
 
 const router = express.Router();
 
@@ -49,4 +50,7 @@ router.get("/graphic/transaksi",getChartTransaksi)
 
 // Histroy Controller
 router.get("/history",getHistory)
+
+
+router.post("/message",sendMessage)
 export default router;

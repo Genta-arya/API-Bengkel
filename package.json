@@ -31,6 +31,7 @@
     "qr-image": "^3.2.0",
     "qrcode": "^1.5.3",
     "qrcode-reader": "^1.0.4",
+    "twilio": "^4.23.0",
     "uuid": "^9.0.1"
   }
 }
