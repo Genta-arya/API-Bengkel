@@ -134,7 +134,6 @@ export const getTransaction = async (req, res) => {
   }
 };
 
-
 export const getChartTransaksi = async (req, res) => {
   const { mode } = req.query;
   try {
@@ -225,11 +224,17 @@ export const getChartTransaksi = async (req, res) => {
       });
 
       groupedTransaksis[formattedDate].totalEarning += transaksi.total;
-      groupedTransaksis[formattedDate].totalKeuntungan +=
-        transaksi.total -
-        transaksi.transaksiBarangs.reduce((acc, transaksiBarang) => {
-          return acc + transaksiBarang.barang.modal * transaksiBarang.jumlah;
-        }, 0);
+      // groupedTransaksis[formattedDate].totalKeuntungan +=
+      //   transaksi.total -
+      //   transaksi.transaksiBarangs.reduce((acc, transaksiBarang) => {
+      //     return acc + transaksiBarang.barang.modal * transaksiBarang.jumlah;
+      //   }, 0);
+      const totalKeuntungan =
+        groupedTransaksis[formattedDate].totalEarning -
+        groupedTransaksis[formattedDate].totalModalAwal;
+
+      // Menambahkan total keuntungan ke dalam groupedTransaksis
+      groupedTransaksis[formattedDate].totalKeuntungan = totalKeuntungan;
     });
 
     // Ubah objek menjadi array

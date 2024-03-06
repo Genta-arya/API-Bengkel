@@ -56,12 +56,7 @@ model TransaksiBarang {
   jumlah      Int
 }
 
-model Mekanik {
-  id         Int         @id @default(autoincrement())
-  nama       String      @unique
-  noHp       String?
-  transaksis Transaksi[]
-}
+
 
 model Barang {
   id         Int               @id @default(autoincrement())
@@ -78,6 +73,13 @@ model Barang {
   histories  History[]
 }
 
+
+model Mekanik {
+  id         Int         @id @default(autoincrement())
+  nama       String      @unique
+  noHp       String?
+  transaksis Transaksi[]
+}
 model History {
   id        Int      @id @default(autoincrement())
   barangId  Int
