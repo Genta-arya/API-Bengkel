@@ -28,7 +28,6 @@ const generateQRCode = (data) => {
     }
   });
 };
-
 export const createBarang = async (req, res) => {
   const { nama, harga, stok, diskon, modal, service } = req.body;
   const parsedHarga = parseInt(harga);
@@ -36,21 +35,12 @@ export const createBarang = async (req, res) => {
   const parsedModal = parseInt(modal);
   const parsedStok = parseInt(stok);
   const parsedDiskon = parseFloat(diskon) / 100;
-  if ((!nama, !harga, !stok, !diskon, !modal, !service)) {
-    return res.status(401).json({ error: "field tidak boleh kosong" });
+
+  if (!nama || !harga || !stok || !diskon || !modal || !service) {
+    return res.status(401).json({ error: "Field tidak boleh kosong" });
   }
 
   try {
-    const existingBarang = await prisma.barang.findFirst({
-      where: { nama },
-    });
-
-    if (existingBarang) {
-      return res
-        .status(400)
-        .json({ error: "Barang dengan nama tersebut sudah ada." });
-    }
-
     const qrCodeData = `BRG-${uuidv4()}`;
 
     const qrCodeBuffer = await generateQRCode(qrCodeData);
@@ -80,6 +70,37 @@ export const createBarang = async (req, res) => {
       },
     });
 
+    const modalAwal = parsedModal * parsedStok;
+
+    // Cari apakah pendapatan sudah ada untuk barang ini
+    const existingPendapatan = await prisma.pendapatan.findFirst();
+
+    let existingPendapatanId = null;
+
+    if (existingPendapatan) {
+      existingPendapatanId = existingPendapatan.id;
+    }
+
+    if (!existingPendapatanId) {
+      // Jika tidak ada data pendapatan, maka buat data baru
+      await prisma.pendapatan.create({
+        data: {
+          modalAwal,
+          keuntungan: 0,
+          totalPendapatan: 0,
+          tanggal: new Date(), // Tanggal pembuatan pendapatan
+        },
+      });
+    } else {
+      // Jika ada data pendapatan, update totalPendapatan dengan menambahkan modalAwal
+      await prisma.pendapatan.updateMany({
+        where: {
+          id: existingPendapatanId,
+        },
+        data: { modalAwal: { increment: modalAwal }, tanggal: new Date() },
+      });
+    }
+
     const newBarcode = await prisma.barcode.create({
       data: {
         barcode: qrCodeData,
@@ -101,7 +122,6 @@ export const createBarang = async (req, res) => {
     await prisma.$disconnect();
   }
 };
-
 export const EditBarang = async (req, res) => {
   const { nama, harga, stok, diskon, modal, service } = req.body;
   const parsedHarga = parseInt(harga);
@@ -109,8 +129,9 @@ export const EditBarang = async (req, res) => {
   const parsedStok = parseInt(stok);
   const parsedModal = parseInt(modal);
   const parsedDiskon = parseFloat(diskon) / 100;
-  if ((!nama, !harga, !stok, !diskon, !modal, !service)) {
-    return res.status(401).json({ error: "field tidak boleh kosong" });
+
+  if (!nama || !harga || !stok || !diskon || !modal || !service) {
+    return res.status(401).json({ error: "Field tidak boleh kosong" });
   }
 
   try {
@@ -119,9 +140,30 @@ export const EditBarang = async (req, res) => {
     });
 
     if (existingProduct && existingProduct.id !== parseInt(req.params.id)) {
-      return res.status(400).json({ error: "Nama produk sudah digunakan" , status: 400 });
+      return res
+        .status(400)
+        .json({ error: "Nama produk sudah digunakan", status: 400 });
     }
 
+    // Mengambil informasi barang sebelum diubah
+    const previousBarang = await prisma.barang.findUnique({
+      where: { id: parseInt(req.params.id) },
+    });
+
+    // Menghitung perubahan modal pada data pendapatan
+    const modalDifference =
+      parsedModal * parsedStok - previousBarang.modal * previousBarang.stok;
+
+    // Mengambil ID pendapatan yang terkait dengan barang yang diubah
+    const existingPendapatan = await prisma.pendapatan.findFirst();
+
+    let existingPendapatanId = null;
+
+    if (existingPendapatan) {
+      existingPendapatanId = existingPendapatan.id;
+    }
+
+    // Mengupdate barang
     const updatedBarang = await prisma.barang.update({
       where: { id: parseInt(req.params.id) },
       data: {
@@ -134,13 +176,24 @@ export const EditBarang = async (req, res) => {
       },
     });
 
+    // Jika ada ID pendapatan yang terkait, maka update total modal pada data pendapatan
+    if (existingPendapatanId) {
+      await prisma.pendapatan.update({
+        where: { id: existingPendapatanId },
+        data: {
+          modalAwal: { increment: modalDifference },
+          tanggal: new Date(),
+        },
+      });
+    }
+
     return res.status(200).json({
       data: updatedBarang,
       message: "Data berhasil diupdate",
       status: 200,
     });
   } catch (error) {
-    console.error("Error creating barang:", error);
+    console.error("Error updating barang:", error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -148,6 +201,19 @@ export const EditBarang = async (req, res) => {
 export const deleteBarang = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Mengambil informasi barang yang akan dihapus
+    const barangToDelete = await prisma.barang.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    if (!barangToDelete) {
+      return res.status(404).json({ message: "Barang tidak ditemukan" });
+    }
+
+    // Menghitung modal yang akan dihapus (modal awal * sisa stok)
 
     await prisma.barcode.deleteMany({
       where: {
@@ -170,6 +236,26 @@ export const deleteBarang = async (req, res) => {
     await prisma.barang.delete({
       where: {
         id: parseInt(id),
+      },
+    });
+    const modalToDelete = barangToDelete.modal * barangToDelete.stok;
+
+    const existingPendapatan = await prisma.pendapatan.findFirst();
+
+    let existingPendapatanId = 0;
+
+    if (existingPendapatan) {
+      existingPendapatanId = existingPendapatan.id;
+    }
+
+    await prisma.pendapatan.update({
+      where: {
+        id: existingPendapatanId,
+      },
+      data: {
+        modalAwal: {
+          decrement: modalToDelete,
+        },
       },
     });
 

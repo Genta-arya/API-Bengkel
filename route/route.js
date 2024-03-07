@@ -9,7 +9,7 @@ import {
   searchBarang,
 } from "../controller/BarangController.js";
 // import sendWhatsAppMessage, { getQr } from "../controller/sendWa.js";
-import { createdTransactions, getChartTransaksi,  getTransaction } from "../controller/TransaksiController.js";
+import { createdTransactions,  getChartData, getTransaction } from "../controller/TransaksiController.js";
 import { Logout, handleLogin, handleRegister, isLoggIn } from "../controller/AuthController.js";
 import { getHistory } from "../controller/HistoryController.js";
 import { DeleteMekanik, EditMekanik, createMekanik, getDataAllMekanik, getDataMekanik, searchMekanik } from "../controller/MekanikController.js";
@@ -42,7 +42,8 @@ router.delete("/mekanik/:id",DeleteMekanik)
 // Transaksi Controller
 router.post("/transaksi", createdTransactions);
 router.get("/transaksi", getTransaction);
-router.get("/graphic/transaksi",getChartTransaksi)
+// router.get("/graphic/transaksi",getChartTransaksi)
+router.get("/graphic/transaksi",getChartData)
 
 // Message Controller
 // router.get("/qrchat",getQr)

@@ -35,9 +35,11 @@ model Barcode {
 
 model Transaksi {
   id               Int               @id @default(autoincrement())
-  nama             String?
+  nama             String
   alamat           String
   motor            String
+  noHp             String?
+  nopol            String
   detail           String
   total            Float
   totalService     Float?
@@ -48,14 +50,24 @@ model Transaksi {
 }
 
 model TransaksiBarang {
-  id          Int       @id @default(autoincrement())
-  transaksi   Transaksi @relation(fields: [transaksiId], references: [id])
-  transaksiId Int
-  barang      Barang    @relation(fields: [barangId], references: [id])
-  barangId    Int
-  jumlah      Int
+  id           Int         @id @default(autoincrement())
+  transaksi    Transaksi   @relation(fields: [transaksiId], references: [id])
+  transaksiId  Int
+  barang       Barang      @relation(fields: [barangId], references: [id])
+  barangId     Int
+  jumlah       Int
+  pendapatan   Pendapatan? @relation(fields: [pendapatanId], references: [id]) // Menambahkan relasi dengan Pendapatan
+  pendapatanId Int?
 }
 
+model Pendapatan {
+  id               Int               @id @default(autoincrement())
+  modalAwal        Int               @default(0)
+  keuntungan       Int               @default(0)
+  totalPendapatan  Int               @default(0)
+  tanggal          DateTime       
+  transaksiBarangs TransaksiBarang[] // Menambahkan relasi dengan TransaksiBarang
+}
 
 
 model Barang {
@@ -71,8 +83,8 @@ model Barang {
   barcodes   Barcode[]
   transaksis TransaksiBarang[]
   histories  History[]
+  // Menambahkan field untuk menyatakan relasi dengan Pendapatan
 }
-
 
 model Mekanik {
   id         Int         @id @default(autoincrement())
@@ -80,6 +92,7 @@ model Mekanik {
   noHp       String?
   transaksis Transaksi[]
 }
+
 model History {
   id        Int      @id @default(autoincrement())
   barangId  Int
