@@ -44,15 +44,17 @@ export const createdTransactions = async (req, res) => {
         stokHabis.push(barang.stok);
       }
     });
-    
+
     // Mengonversi stokHabis menjadi string dengan koma sebagai pemisah
     const stokString = stokHabis.join(", ");
-    
+
     // If any barang is out of stock, return the list of out of stock barangs
     if (barangHabis.length > 0) {
-      return res
-        .status(400)
-        .json({ error: `Stok barang ${barangHabis.join(", ")} hanya tersisa ${stokString}` });
+      return res.status(400).json({
+        error: `Stok barang ${barangHabis.join(
+          ", "
+        )} hanya tersisa ${stokString}`,
+      });
     }
     // Calculate total
     let total = 0;
@@ -106,6 +108,52 @@ export const createdTransactions = async (req, res) => {
       });
     }
 
+    let existingPendapatanHarianId = null;
+
+    const today = new Date();
+    const startDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    const existingPendapatanHarian = await prisma.pendapatanHarian.findFirst({
+      where: {
+        tanggal: {
+          gte: startDate,
+          lt: endDate,
+        },
+      },
+    });
+
+    if (existingPendapatanHarian) {
+      existingPendapatanHarianId = existingPendapatanHarian.id;
+    }
+
+    // Jika ada entitas pendapatan harian yang sudah ada sebelumnya, tambahkan keuntungan dan total pendapatan
+    if (existingPendapatanHarianId) {
+      await prisma.pendapatanHarian.update({
+        where: { id: existingPendapatanHarianId },
+        data: {
+          keuntungan: { increment: keuntungan }, // Menambahkan keuntungan
+          totalPendapatan: { increment: totalAkhir }, // Menambahkan totalPendapatan
+        },
+      });
+    } else {
+      // Jika tidak ada entitas pendapatan harian yang sudah ada sebelumnya, buat entitas baru
+      await prisma.pendapatanHarian.create({
+        data: {
+          keuntungan: keuntungan,
+          totalPendapatan: totalAkhir,
+          tanggal: new Date(), // Tanggal pembuatan entitas pendapatan harian
+        },
+      });
+    }
     // Membuat transaksi baru menggunakan Prisma Client
     const newTransaction = await prisma.transaksi.create({
       data: {
@@ -373,6 +421,83 @@ export const getChartData = async (req, res) => {
       case "tahunan":
         // Tampilkan semua data tanpa filter tanggal
         data = await prisma.pendapatan.findMany();
+        break;
+
+      default:
+        return res.status(400).json({ message: "Mode tidak valid" });
+    }
+
+    // Kirimkan data dan tanggal saat ini sebagai respons
+    res.status(200).json({ data, mode });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
+  }
+};
+export const getChartDataHarian = async (req, res) => {
+  const { mode } = req.query;
+
+  try {
+    let data;
+    let tanggal;
+
+    // Ambil tanggal saat ini
+    const today = new Date();
+    const year = today.getFullYear();
+
+    switch (mode) {
+      case "harian":
+        // Filter data pendapatan berdasarkan tanggal
+        const startDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+        const endDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() + 1
+        );
+
+        data = await prisma.pendapatanHarian.findMany({
+          where: {
+            tanggal: {
+              gte: startDate,
+              lt: endDate,
+            },
+          },
+        });
+        break;
+
+        case "bulanan":
+          // Filter data pendapatan untuk semua bulan pada tahun ini
+          const startOfMonth = new Date(year, 0, 1); // Mulai tahun ini
+          const endOfMonth = new Date(year + 1, 0, 1); // Akhir tahun ini
+          
+          // Ambil 7 data terakhir yang telah diurutkan secara ascending berdasarkan tanggal
+          data = await prisma.pendapatanHarian.findMany({
+            where: {
+              tanggal: {
+                gte: startOfMonth,
+                lt: endOfMonth,
+              },
+            },
+            orderBy: {
+              tanggal: 'asc' // Urutkan berdasarkan tanggal secara ascending
+            },
+            take: 7 // Ambil hanya 7 data terakhir
+          });
+          // Ambil data terakhir dari hasil query
+          const lastData = data[data.length - 1];
+        
+          // Tampilkan data terakhir
+          console.log("Data Terakhir:", lastData);
+          // Tampilkan jumlah data
+          console.log("Jumlah Data:", data.length);
+          break;
+      case "tahunan":
+        // Tampilkan semua data tanpa filter tanggal
+        data = await prisma.pendapatanHarian.findMany();
         break;
 
       default:

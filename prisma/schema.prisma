@@ -65,10 +65,17 @@ model Pendapatan {
   modalAwal        Int               @default(0)
   keuntungan       Int               @default(0)
   totalPendapatan  Int               @default(0)
-  tanggal          DateTime       
+  tanggal          DateTime
   transaksiBarangs TransaksiBarang[] // Menambahkan relasi dengan TransaksiBarang
 }
 
+model PendapatanHarian {
+  id              Int      @id @default(autoincrement())
+
+  keuntungan      Int      @default(0)
+  totalPendapatan Int      @default(0)
+  tanggal         DateTime
+}
 
 model Barang {
   id         Int               @id @default(autoincrement())

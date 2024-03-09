@@ -9,11 +9,12 @@ import {
   searchBarang,
 } from "../controller/BarangController.js";
 // import sendWhatsAppMessage, { getQr } from "../controller/sendWa.js";
-import { createdTransactions,  getChartData, getTransaction } from "../controller/TransaksiController.js";
+import { createdTransactions,  getChartData, getChartDataHarian, getTransaction } from "../controller/TransaksiController.js";
 import { Logout, handleLogin, handleRegister, isLoggIn } from "../controller/AuthController.js";
 import { getHistory } from "../controller/HistoryController.js";
 import { DeleteMekanik, EditMekanik, createMekanik, getDataAllMekanik, getDataMekanik, searchMekanik } from "../controller/MekanikController.js";
 import { sendMessage } from "../Config/Twilio/Config.js";
+import { Middleware } from "../controller/Midleware.js";
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.post("/logout",Logout)
 router.post("/user", isLoggIn);
 
 // produk Controller
-router.get("/produk", getBarang);
+router.get("/produk", Middleware ,getBarang);
 router.get("/all/produk",getAllBarang)
 router.post("/produk", createBarang);
 router.put("/produk/:id",EditBarang)
@@ -44,6 +45,7 @@ router.post("/transaksi", createdTransactions);
 router.get("/transaksi", getTransaction);
 // router.get("/graphic/transaksi",getChartTransaksi)
 router.get("/graphic/transaksi",getChartData)
+router.get("/graphic/harian/transaksi",getChartDataHarian)
 
 // Message Controller
 // router.get("/qrchat",getQr)

@@ -58,6 +58,19 @@ export const createBarang = async (req, res) => {
       },
     });
 
+    const existingProduct = await prisma.barang.findFirst({
+      where: {
+        nama: {
+          equals: nama,
+        },
+      },
+    });
+
+   
+    if (existingProduct) {
+      return res.status(400).json({ error: "Nama produk sudah ada" });
+    }
+
     const newBarang = await prisma.barang.create({
       data: {
         nama,
@@ -72,7 +85,6 @@ export const createBarang = async (req, res) => {
 
     const modalAwal = parsedModal * parsedStok;
 
-    // Cari apakah pendapatan sudah ada untuk barang ini
     const existingPendapatan = await prisma.pendapatan.findFirst();
 
     let existingPendapatanId = null;
@@ -82,17 +94,15 @@ export const createBarang = async (req, res) => {
     }
 
     if (!existingPendapatanId) {
-      // Jika tidak ada data pendapatan, maka buat data baru
       await prisma.pendapatan.create({
         data: {
           modalAwal,
           keuntungan: 0,
           totalPendapatan: 0,
-          tanggal: new Date(), // Tanggal pembuatan pendapatan
+          tanggal: new Date(),
         },
       });
     } else {
-      // Jika ada data pendapatan, update totalPendapatan dengan menambahkan modalAwal
       await prisma.pendapatan.updateMany({
         where: {
           id: existingPendapatanId,
@@ -122,6 +132,7 @@ export const createBarang = async (req, res) => {
     await prisma.$disconnect();
   }
 };
+
 export const EditBarang = async (req, res) => {
   const { nama, harga, stok, diskon, modal, service } = req.body;
   const parsedHarga = parseInt(harga);
@@ -145,16 +156,13 @@ export const EditBarang = async (req, res) => {
         .json({ error: "Nama produk sudah digunakan", status: 400 });
     }
 
-    // Mengambil informasi barang sebelum diubah
     const previousBarang = await prisma.barang.findUnique({
       where: { id: parseInt(req.params.id) },
     });
 
-    // Menghitung perubahan modal pada data pendapatan
     const modalDifference =
       parsedModal * parsedStok - previousBarang.modal * previousBarang.stok;
 
-    // Mengambil ID pendapatan yang terkait dengan barang yang diubah
     const existingPendapatan = await prisma.pendapatan.findFirst();
 
     let existingPendapatanId = null;
@@ -163,7 +171,6 @@ export const EditBarang = async (req, res) => {
       existingPendapatanId = existingPendapatan.id;
     }
 
-    // Mengupdate barang
     const updatedBarang = await prisma.barang.update({
       where: { id: parseInt(req.params.id) },
       data: {
@@ -176,7 +183,6 @@ export const EditBarang = async (req, res) => {
       },
     });
 
-    // Jika ada ID pendapatan yang terkait, maka update total modal pada data pendapatan
     if (existingPendapatanId) {
       await prisma.pendapatan.update({
         where: { id: existingPendapatanId },
@@ -202,7 +208,6 @@ export const deleteBarang = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Mengambil informasi barang yang akan dihapus
     const barangToDelete = await prisma.barang.findUnique({
       where: {
         id: parseInt(id),
@@ -212,8 +217,6 @@ export const deleteBarang = async (req, res) => {
     if (!barangToDelete) {
       return res.status(404).json({ message: "Barang tidak ditemukan" });
     }
-
-    // Menghitung modal yang akan dihapus (modal awal * sisa stok)
 
     await prisma.barcode.deleteMany({
       where: {
@@ -267,7 +270,7 @@ export const deleteBarang = async (req, res) => {
 };
 
 export const getBarang = async (req, res) => {
-  const { page = 1, perPage = 2 } = req.query;
+  const { page = 1, perPage = 15 } = req.query;
   try {
     const skip = (page - 1) * perPage;
     const take = perPage;
