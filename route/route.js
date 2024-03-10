@@ -14,7 +14,7 @@ import { Logout, handleLogin, handleRegister, isLoggIn } from "../controller/Aut
 import { getHistory } from "../controller/HistoryController.js";
 import { DeleteMekanik, EditMekanik, createMekanik, getDataAllMekanik, getDataMekanik, searchMekanik } from "../controller/MekanikController.js";
 import { sendMessage } from "../Config/Twilio/Config.js";
-import { Middleware } from "../controller/Midleware.js";
+import { Middleware, MiddlewareEarning } from "../controller/Midleware.js";
 
 const router = express.Router();
 
@@ -44,8 +44,8 @@ router.delete("/mekanik/:id",Middleware,DeleteMekanik)
 router.post("/transaksi", createdTransactions);
 router.get("/transaksi", getTransaction);
 // router.get("/graphic/transaksi",getChartTransaksi)
-router.get("/graphic/transaksi",Middleware,getChartData)
-router.get("/graphic/harian/transaksi",Middleware,getChartDataHarian)
+router.get("/graphic/transaksi",MiddlewareEarning,getChartData)
+router.get("/graphic/harian/transaksi",MiddlewareEarning,getChartDataHarian)
 
 // Message Controller
 // router.get("/qrchat",getQr)
