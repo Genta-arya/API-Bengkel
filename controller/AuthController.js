@@ -119,7 +119,7 @@ export const handleLogin = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-  
+    console.error(error)
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
