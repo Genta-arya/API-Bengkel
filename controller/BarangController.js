@@ -126,7 +126,7 @@ export const createBarang = async (req, res) => {
       barcode: newBarcode,
     });
   } catch (error) {
-    console.error("Error creating barang:", error);
+
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
@@ -199,7 +199,7 @@ export const EditBarang = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    console.error("Error updating barang:", error);
+  
     return res.status(500).json({ error: error.message });
   }
 };
@@ -264,7 +264,7 @@ export const deleteBarang = async (req, res) => {
 
     res.status(200).json({ message: "Barang berhasil dihapus" });
   } catch (error) {
-    console.error(error);
+   
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -291,7 +291,7 @@ export const getBarang = async (req, res) => {
       totalPages: totalPages,
     });
   } catch (error) {
-    console.error("Error retrieving barang:", error);
+  
 
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
@@ -311,7 +311,7 @@ export const getAllBarang = async (req, res) => {
       data: allBarang,
     });
   } catch (error) {
-    console.error("Error retrieving barang:", error);
+  
 
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
@@ -356,7 +356,7 @@ export const searchBarang = async (req, res) => {
       totalPages: Math.ceil(totalItems / perPage),
     });
   } catch (error) {
-    console.error(error);
+
     res.status(500).json({ message: "Internal server error" });
   }
 };

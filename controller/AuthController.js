@@ -10,7 +10,7 @@ export const generateJWTToken = (user) => {
     userId: user.id,
     username: user.username,
   };
-  const expiresIn = "24h";
+  const expiresIn = "3d";
   const token = jwt.sign(payload, secretKey, { expiresIn });
   return token;
 };
@@ -63,7 +63,7 @@ export const handleRegister = async (req, res) => {
       .status(201)
       .json({ data: userResponse, message: "created succes", status: 201 });
   } catch (error) {
-    console.error("Error mendaftarkan pengguna:", error);
+  
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
@@ -119,7 +119,7 @@ export const handleLogin = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    console.error("Error saat login:", error);
+  
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
@@ -131,17 +131,42 @@ export const isLoggIn = async (req, res) => {
     const { token } = req.body;
 
     if (!token) {
-      return res.status(400).json({
+      return res.status(401).json({
         data: {
           isLogged: false,
           error: "Token tidak valid",
+          status: 401,
+        },
+      });
+    }
+
+    const decodedToken = jwt.decode(token); // Decode token JWT
+
+    if (decodedToken && decodedToken.exp < Date.now() / 1000) {
+      const user = await prisma.auth.findUnique({
+        where: { token_jwt: token },
+      });
+
+      if (user) {
+        await prisma.auth.update({
+          where: { uid: user.uid },
+          data: { token_jwt: null },
+        });
+      }
+
+      return res.status(400).json({
+        data: {
+          isLogged: false,
+          error: "Token sudah kadaluwarsa, silahkan login kembali",
           status: 400,
         },
       });
     }
+
     const user = await prisma.auth.findUnique({
       where: { token_jwt: token },
     });
+
     if (user) {
       const { username, email, token_jwt, role, uid, avatar, name } = user;
       return res.status(200).json({
@@ -157,24 +182,21 @@ export const isLoggIn = async (req, res) => {
         },
       });
     } else {
-      return res.status(200).json({
-        data:{
-
+      return res.status(401).json({
+        data: {
           isLogged: false,
           error: "Token tidak valid silahkan Login kembali",
-          status: 200,
-        }
+          status: 401,
+        },
       });
     }
   } catch (error) {
-    console.error("Error:", error);
+ 
     return res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
   }
 };
-
-
 export const Logout = async (req, res) => {
   try {
     const { token } = req.body;
@@ -212,9 +234,9 @@ export const Logout = async (req, res) => {
       .status(200)
       .json({ isLogged: false, message: "Logout berhasil", status: 200 });
   } catch (error) {
-    console.error("Error saat logout:", error);
+
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
-    await prisma.$disconnect(); // Memutus koneksi Prisma setelah operasi
+    await prisma.$disconnect(); 
   }
 };

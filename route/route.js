@@ -26,26 +26,26 @@ router.post("/user", isLoggIn);
 
 // produk Controller
 router.get("/produk", Middleware ,getBarang);
-router.get("/all/produk",getAllBarang)
-router.post("/produk", createBarang);
-router.put("/produk/:id",EditBarang)
-router.delete("/produk/:id",deleteBarang)
-router.get("/search/produk", searchBarang);
+router.get("/all/produk",Middleware,getAllBarang)
+router.post("/produk", Middleware,createBarang);
+router.put("/produk/:id",Middleware,EditBarang)
+router.delete("/produk/:id",Middleware,deleteBarang)
+router.get("/search/produk",Middleware, searchBarang);
 
 // MekanikController
-router.get("/mekanik",getDataMekanik)
-router.get("/all/mekanik",getDataAllMekanik)
-router.get("/search/mekanik",searchMekanik)
-router.post("/mekanik",createMekanik)
-router.put("/mekanik/:id",EditMekanik)
-router.delete("/mekanik/:id",DeleteMekanik)
+router.get("/mekanik",Middleware,getDataMekanik)
+router.get("/all/mekanik",Middleware,getDataAllMekanik)
+router.get("/search/mekanik",Middleware,searchMekanik)
+router.post("/mekanik",Middleware,createMekanik)
+router.put("/mekanik/:id",Middleware,EditMekanik)
+router.delete("/mekanik/:id",Middleware,DeleteMekanik)
 
 // Transaksi Controller
 router.post("/transaksi", createdTransactions);
 router.get("/transaksi", getTransaction);
 // router.get("/graphic/transaksi",getChartTransaksi)
-router.get("/graphic/transaksi",getChartData)
-router.get("/graphic/harian/transaksi",getChartDataHarian)
+router.get("/graphic/transaksi",Middleware,getChartData)
+router.get("/graphic/harian/transaksi",Middleware,getChartDataHarian)
 
 // Message Controller
 // router.get("/qrchat",getQr)

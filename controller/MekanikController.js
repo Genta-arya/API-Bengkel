@@ -48,7 +48,7 @@ export const createMekanik = async (req, res) => {
 
     if (existingMekanik) {
       // If the mekanik with the same nama already exists, return a 409 Conflict response
-      return res.status(409).json({ error: "nama sudah terdaftar" });
+      return res.status(409).json({ error: "Nama mekanik sudah terdaftar" });
     }
 
     // Create a new mekanik in the database

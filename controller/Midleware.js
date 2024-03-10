@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-
+import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
+
+
 
 export const Middleware = async (req, res, next) => {
   try {
@@ -13,7 +15,15 @@ export const Middleware = async (req, res, next) => {
     if (!token) {
       return res
         .status(401)
-        .json({ error: "Akses ditolak, silahkan login terlebih dahulu" });
+        .json({ error: "Akses ditolak, silahkan login terlebih dahulu" , status:401 });
+    }
+
+    const decodedToken = jwt.decode(token); 
+
+    if (decodedToken && decodedToken.exp < Date.now() / 1000) {
+      return res
+        .status(401)
+        .json({ error: "Token sudah kedaluwarsa"  ,status:401});
     }
 
     const user = await prisma.auth.findFirst({
@@ -30,7 +40,7 @@ export const Middleware = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("Middleware Error:", error);
+ 
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };

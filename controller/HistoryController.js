@@ -36,6 +36,6 @@ export const getHistory = async (req, res) => {
   } catch (error) {
     // Menangani kesalahan dan mengembalikan respons dengan pesan kesalahan
     res.status(500).json({ error: "Internal Server Error" });
-    console.error(error);
+  
   }
 };

@@ -63,7 +63,7 @@ export const createdTransactions = async (req, res) => {
       total += barang.harga * jumlahArray[index];
       currentModal = barang.modal * jumlahArray[index];
     });
-    console.log(currentModal);
+ 
 
     // Calculate total with service cost
 
@@ -78,7 +78,7 @@ export const createdTransactions = async (req, res) => {
     const totalAkhir = total + serviceCost;
     let modalAwal = 0;
 
-    // Jika ada entitas pendapatan yang sudah ada sebelumnya, gunakan modalAwal dari entitas tersebut
+
     if (existingPendapatan) {
       modalAwal = existingPendapatan.modalAwal;
     }
@@ -87,17 +87,17 @@ export const createdTransactions = async (req, res) => {
     const keuntungan = earning - currentModal;
 
     if (existingPendapatanId) {
-      // Memperbarui data pendapatan jika sudah ada
+
       await prisma.pendapatan.update({
         where: { id: existingPendapatanId },
         data: {
           tanggal: new Date(),
-          keuntungan: { increment: keuntungan }, // Menambahkan keuntungan
-          totalPendapatan: { increment: totalAkhir }, // Menambahkan totalPendapatan
+          keuntungan: { increment: keuntungan }, 
+          totalPendapatan: { increment: totalAkhir }, 
         },
       });
     } else {
-      // Jika tidak ada data pendapatan sebelumnya, buat entitas baru
+
       await prisma.pendapatan.create({
         data: {
           modalAwal: modalAwal,
@@ -208,7 +208,7 @@ export const createdTransactions = async (req, res) => {
   } catch (error) {
     // Menangani kesalahan dan mengembalikan respons dengan pesan kesalahan
     res.status(500).json({ error: "Internal Server Error" });
-    console.error(error);
+
   }
 };
 
@@ -236,7 +236,7 @@ export const getTransaction = async (req, res) => {
     res.status(200).json(transactions);
   } catch (error) {
     // Menangani kesalahan dan mengembalikan respons dengan pesan kesalahan
-    console.error(error);
+
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect(); // Disconnect from the database when done
@@ -430,7 +430,7 @@ export const getChartData = async (req, res) => {
     // Kirimkan data dan tanggal saat ini sebagai respons
     res.status(200).json({ data, mode });
   } catch (error) {
-    console.error("Error:", error);
+  
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
   }
 };
@@ -474,7 +474,7 @@ export const getChartDataHarian = async (req, res) => {
           const startOfMonth = new Date(year, 0, 1); // Mulai tahun ini
           const endOfMonth = new Date(year + 1, 0, 1); // Akhir tahun ini
           
-          // Ambil 7 data terakhir yang telah diurutkan secara ascending berdasarkan tanggal
+        
           data = await prisma.pendapatanHarian.findMany({
             where: {
               tanggal: {
@@ -483,20 +483,18 @@ export const getChartDataHarian = async (req, res) => {
               },
             },
             orderBy: {
-              tanggal: 'asc' // Urutkan berdasarkan tanggal secara ascending
+              tanggal: 'asc'
             },
-            take: 7 // Ambil hanya 7 data terakhir
+            take: 7 
           });
-          // Ambil data terakhir dari hasil query
+         
           const lastData = data[data.length - 1];
         
-          // Tampilkan data terakhir
-          console.log("Data Terakhir:", lastData);
-          // Tampilkan jumlah data
-          console.log("Jumlah Data:", data.length);
+      
+       
           break;
       case "tahunan":
-        // Tampilkan semua data tanpa filter tanggal
+
         data = await prisma.pendapatanHarian.findMany();
         break;
 
@@ -504,10 +502,10 @@ export const getChartDataHarian = async (req, res) => {
         return res.status(400).json({ message: "Mode tidak valid" });
     }
 
-    // Kirimkan data dan tanggal saat ini sebagai respons
+
     res.status(200).json({ data, mode });
   } catch (error) {
-    console.error("Error:", error);
+
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
   }
 };
