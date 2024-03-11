@@ -15,9 +15,7 @@ export const getDataMekanik = async (req, res) => {
     const totalMekaniks = await prisma.mekanik.count();
     const totalPages = Math.ceil(totalMekaniks / pageSize);
 
-    if (mekaniks.length === 0) {
-      return res.status(404).json({ error: "Data not found" });
-    }
+   
 
     res.status(200).json({ data: mekaniks, page: pageInt, totalPages });
   } catch (error) {
