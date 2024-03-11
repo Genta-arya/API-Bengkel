@@ -8,52 +8,75 @@ import {
   getBarang,
   searchBarang,
 } from "../controller/BarangController.js";
-// import sendWhatsAppMessage, { getQr } from "../controller/sendWa.js";
-import { createdTransactions,  getChartData, getChartDataHarian, getTransaction } from "../controller/TransaksiController.js";
-import { Logout, handleLogin, handleRegister, isLoggIn } from "../controller/AuthController.js";
-import { getHistory } from "../controller/HistoryController.js";
-import { DeleteMekanik, EditMekanik, createMekanik, getDataAllMekanik, getDataMekanik, searchMekanik } from "../controller/MekanikController.js";
+
+import {
+  createdTransactions,
+  getChartData,
+  getChartDataHarian,
+  getMoneyTracking,
+  getTransaction,
+} from "../controller/TransaksiController.js";
+import {
+  Logout,
+  handleLogin,
+  handleRegister,
+  isLoggIn,
+} from "../controller/AuthController.js";
+import {
+  getHistory,
+  getHistoryManageItem,
+} from "../controller/HistoryController.js";
+import {
+  DeleteMekanik,
+  EditMekanik,
+  createMekanik,
+  getDataAllMekanik,
+  getDataMekanik,
+  searchMekanik,
+} from "../controller/MekanikController.js";
 import { sendMessage } from "../Config/Twilio/Config.js";
 import { Middleware, MiddlewareEarning } from "../controller/Midleware.js";
+import { getData } from "../controller/getdata.js";
 
 const router = express.Router();
 
 // Auth Controller
-router.post("/register",handleRegister)
-router.post("/login",handleLogin)
-router.post("/logout",Logout)
+router.post("/register", handleRegister);
+router.post("/login", handleLogin);
+router.post("/logout", Logout);
 router.post("/user", isLoggIn);
 
 // produk Controller
-router.get("/produk", Middleware ,getBarang);
-router.get("/all/produk",Middleware,getAllBarang)
-router.post("/produk", Middleware,createBarang);
-router.put("/produk/:id",Middleware,EditBarang)
-router.delete("/produk/:id",Middleware,deleteBarang)
-router.get("/search/produk",Middleware, searchBarang);
+router.get("/produk", Middleware, getBarang);
+router.get("/all/produk", Middleware, getAllBarang);
+router.post("/produk", Middleware, createBarang);
+router.put("/produk/:id", Middleware, EditBarang);
+router.delete("/produk/:id", Middleware, deleteBarang);
+router.get("/search/produk", Middleware, searchBarang);
 
 // MekanikController
-router.get("/mekanik",Middleware,getDataMekanik)
-router.get("/all/mekanik",Middleware,getDataAllMekanik)
-router.get("/search/mekanik",Middleware,searchMekanik)
-router.post("/mekanik",Middleware,createMekanik)
-router.put("/mekanik/:id",Middleware,EditMekanik)
-router.delete("/mekanik/:id",Middleware,DeleteMekanik)
+router.get("/mekanik", Middleware, getDataMekanik);
+router.get("/all/mekanik", Middleware, getDataAllMekanik);
+router.get("/search/mekanik", Middleware, searchMekanik);
+router.post("/mekanik", Middleware, createMekanik);
+router.put("/mekanik/:id", Middleware, EditMekanik);
+router.delete("/mekanik/:id", Middleware, DeleteMekanik);
 
 // Transaksi Controller
 router.post("/transaksi", createdTransactions);
 router.get("/transaksi", getTransaction);
-// router.get("/graphic/transaksi",getChartTransaksi)
-router.get("/graphic/transaksi",MiddlewareEarning,getChartData)
-router.get("/graphic/harian/transaksi",MiddlewareEarning,getChartDataHarian)
+router.get("/graphic/transaksi", MiddlewareEarning, getChartData);
+router.get("/graphic/harian/transaksi", MiddlewareEarning, getChartDataHarian);
 
 // Message Controller
 // router.get("/qrchat",getQr)
 // router.post("/send-whatsapp",sendWhatsAppMessage)
 
 // Histroy Controller
-router.get("/history",getHistory)
+router.get("/history", getHistory);
+router.get("/data",getData)
+router.get("/history/update", getHistoryManageItem);
+router.get("/money", MiddlewareEarning, getMoneyTracking);
 
-
-router.post("/message",sendMessage)
+router.post("/message", sendMessage);
 export default router;

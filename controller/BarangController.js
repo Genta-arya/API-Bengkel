@@ -66,7 +66,6 @@ export const createBarang = async (req, res) => {
       },
     });
 
-   
     if (existingProduct) {
       return res.status(400).json({ error: "Nama produk sudah ada" });
     }
@@ -111,6 +110,41 @@ export const createBarang = async (req, res) => {
       });
     }
 
+    const existingEarning = await prisma.earning.findFirst();
+
+    let existingEarningId = null;
+
+    if (existingEarning) {
+      existingEarningId = existingEarning.id;
+    }
+
+    if (!existingEarningId) {
+      await prisma.earning.create({
+        data: {
+          uang_keluar: modalAwal,
+
+          tanggal: new Date(),
+        },
+      });
+    } else {
+      await prisma.earning.updateMany({
+        where: {
+          id: existingEarningId,
+        },
+        data: { uang_keluar: { increment: modalAwal }, tanggal: new Date() },
+      });
+    }
+
+    await prisma.historyBarang.create({
+      data: {
+        barangId: newBarang.id,
+        tipe: "tambah", // Menandakan bahwa barang baru telah ditambahkan
+        waktu: new Date(),
+        nama: nama,
+        perubahan: `Barang baru dengan nama ${nama} ditambahkan dengan harga ${parsedHarga}, stok ${parsedStok} , diskon ${diskon} , modal awal ${modal} , biaya service ${service}.`,
+      },
+    });
+
     const newBarcode = await prisma.barcode.create({
       data: {
         barcode: qrCodeData,
@@ -126,8 +160,8 @@ export const createBarang = async (req, res) => {
       barcode: newBarcode,
     });
   } catch (error) {
-
     res.status(500).json({ error: "Internal Server Error" });
+    console.error(error);
   } finally {
     await prisma.$disconnect();
   }
@@ -193,13 +227,22 @@ export const EditBarang = async (req, res) => {
       });
     }
 
+    await prisma.historyBarang.create({
+      data: {
+        barangId: updatedBarang.id,
+        tipe: "edit", // Menandakan bahwa barang telah diedit
+        waktu: new Date(),
+        nama:nama,
+        perubahan: `Informasi barang diubah: nama diubah menjadi ${nama}, harga diubah menjadi ${parsedHarga}, stok diubah menjadi ${parsedStok} , Diskon menjadi ${diskon} dan modal awal menjadi ${modal} , biaya service menjadi ${service}`,
+      },
+    });
+
     return res.status(200).json({
       data: updatedBarang,
       message: "Data berhasil diupdate",
       status: 200,
     });
   } catch (error) {
-  
     return res.status(500).json({ error: error.message });
   }
 };
@@ -241,6 +284,16 @@ export const deleteBarang = async (req, res) => {
         id: parseInt(id),
       },
     });
+
+    await prisma.historyBarang.create({
+      data: {
+        barangId: parseInt(id),
+        tipe: "hapus", // Menandakan bahwa barang telah dihapus
+        waktu: new Date(),
+        nama: barangToDelete.nama,
+        perubahan: `Barang dengan nama ${barangToDelete.nama} telah dihapus dari daftar.`,
+      },
+    });
     const modalToDelete = barangToDelete.modal * barangToDelete.stok;
 
     const existingPendapatan = await prisma.pendapatan.findFirst();
@@ -264,7 +317,7 @@ export const deleteBarang = async (req, res) => {
 
     res.status(200).json({ message: "Barang berhasil dihapus" });
   } catch (error) {
-   
+    console.log(error)
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -291,8 +344,6 @@ export const getBarang = async (req, res) => {
       totalPages: totalPages,
     });
   } catch (error) {
-  
-
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
@@ -311,8 +362,6 @@ export const getAllBarang = async (req, res) => {
       data: allBarang,
     });
   } catch (error) {
-  
-
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
@@ -356,7 +405,6 @@ export const searchBarang = async (req, res) => {
       totalPages: Math.ceil(totalItems / perPage),
     });
   } catch (error) {
-
     res.status(500).json({ message: "Internal server error" });
   }
 };

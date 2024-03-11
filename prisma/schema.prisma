@@ -70,11 +70,18 @@ model Pendapatan {
 }
 
 model PendapatanHarian {
-  id              Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   keuntungan      Int      @default(0)
   totalPendapatan Int      @default(0)
   tanggal         DateTime
+}
+
+model Earning {
+  id          Int      @id @default(autoincrement())
+  uang_keluar Int      @default(0)
+  uang_masuk  Int      @default(0)
+  tanggal     DateTime @default(now())
 }
 
 model Barang {
@@ -90,7 +97,17 @@ model Barang {
   barcodes   Barcode[]
   transaksis TransaksiBarang[]
   histories  History[]
-  // Menambahkan field untuk menyatakan relasi dengan Pendapatan
+
+ 
+}
+
+model HistoryBarang {
+  id         Int               @id @default(autoincrement())
+  barangId   Int
+  tipe       String            
+  waktu      DateTime          @default(now())
+  perubahan  String            
+nama String
 }
 
 model Mekanik {

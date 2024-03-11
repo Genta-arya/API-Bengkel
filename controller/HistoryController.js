@@ -36,6 +36,47 @@ export const getHistory = async (req, res) => {
   } catch (error) {
     // Menangani kesalahan dan mengembalikan respons dengan pesan kesalahan
     res.status(500).json({ error: "Internal Server Error" });
-  
+  }
+};
+
+export const getHistoryManageItem = async (req, res) => {
+  const { page = 1, perPage = 5, category = "all" } = req.query;
+
+  const skip = (page - 1) * perPage;
+  const take = parseInt(perPage);
+
+  let where = {}; // Kondisi tambahan untuk query
+
+  // Membuat kondisi tambahan berdasarkan kategori yang diminta
+  if (category !== "all") {
+    where = { tipe: category };
+  }
+
+  try {
+    // Mengambil riwayat manajemen barang dari basis data dengan urutan menurun
+    const history = await prisma.historyBarang.findMany({
+      skip,
+      take,
+      orderBy: {
+        waktu: 'desc', // Menyortir berdasarkan waktu secara menurun (dari yang terbaru)
+      },
+      where, // Menambahkan kondisi tambahan ke query
+    });
+
+    // Menghitung total data riwayat manajemen barang
+    const totalCount = await prisma.historyBarang.count();
+
+    // Mengembalikan riwayat manajemen barang beserta informasi paginasi
+    res.status(200).json({
+      data: history,
+      page: parseInt(page),
+      perPage: parseInt(perPage),
+      totalPage: Math.ceil(totalCount / perPage),
+      totalCount,
+    });
+  } catch (error) {
+    // Menangani kesalahan jika terjadi
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };

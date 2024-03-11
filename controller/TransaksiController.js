@@ -63,7 +63,6 @@ export const createdTransactions = async (req, res) => {
       total += barang.harga * jumlahArray[index];
       currentModal = barang.modal * jumlahArray[index];
     });
- 
 
     // Calculate total with service cost
 
@@ -78,7 +77,6 @@ export const createdTransactions = async (req, res) => {
     const totalAkhir = total + serviceCost;
     let modalAwal = 0;
 
-
     if (existingPendapatan) {
       modalAwal = existingPendapatan.modalAwal;
     }
@@ -87,17 +85,15 @@ export const createdTransactions = async (req, res) => {
     const keuntungan = earning - currentModal;
 
     if (existingPendapatanId) {
-
       await prisma.pendapatan.update({
         where: { id: existingPendapatanId },
         data: {
           tanggal: new Date(),
-          keuntungan: { increment: keuntungan }, 
-          totalPendapatan: { increment: totalAkhir }, 
+          keuntungan: { increment: keuntungan },
+          totalPendapatan: { increment: totalAkhir },
         },
       });
     } else {
-
       await prisma.pendapatan.create({
         data: {
           modalAwal: modalAwal,
@@ -154,6 +150,32 @@ export const createdTransactions = async (req, res) => {
         },
       });
     }
+
+    const existingEarning = await prisma.earning.findFirst();
+
+    let existingEarningId = null;
+
+    if (existingEarning) {
+      existingEarningId = existingEarning.id;
+    }
+
+    if (!existingEarningId) {
+      await prisma.earning.create({
+        data: {
+          uang_masuk: totalAkhir,
+
+          tanggal: new Date(),
+        },
+      });
+    } else {
+      await prisma.earning.updateMany({
+        where: {
+          id: existingEarningId,
+        },
+        data: { uang_masuk: { increment: totalAkhir }, tanggal: new Date() },
+      });
+    }
+
     // Membuat transaksi baru menggunakan Prisma Client
     const newTransaction = await prisma.transaksi.create({
       data: {
@@ -208,7 +230,6 @@ export const createdTransactions = async (req, res) => {
   } catch (error) {
     // Menangani kesalahan dan mengembalikan respons dengan pesan kesalahan
     res.status(500).json({ error: "Internal Server Error" });
-
   }
 };
 
@@ -430,7 +451,6 @@ export const getChartData = async (req, res) => {
     // Kirimkan data dan tanggal saat ini sebagai respons
     res.status(200).json({ data, mode });
   } catch (error) {
-  
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
   }
 };
@@ -469,32 +489,26 @@ export const getChartDataHarian = async (req, res) => {
         });
         break;
 
-        case "bulanan":
-          // Filter data pendapatan untuk semua bulan pada tahun ini
-          const startOfMonth = new Date(year, 0, 1); // Mulai tahun ini
-          const endOfMonth = new Date(year + 1, 0, 1); // Akhir tahun ini
-          
-        
-          data = await prisma.pendapatanHarian.findMany({
-            where: {
-              tanggal: {
-                gte: startOfMonth,
-                lt: endOfMonth,
-              },
-            },
-            orderBy: {
-              tanggal: 'asc'
-            },
-            take: 7 
-          });
-         
-          const lastData = data[data.length - 1];
-        
-      
-       
-          break;
-      case "tahunan":
+      case "bulanan":
+        // Filter data pendapatan untuk semua bulan pada tahun ini
+        const startOfMonth = new Date(year, 0, 1); // Mulai tahun ini
+        const endOfMonth = new Date(year + 1, 0, 1); // Akhir tahun ini
 
+        data = await prisma.pendapatanHarian.findMany({
+          where: {
+            tanggal: {
+              gte: startOfMonth,
+              lt: endOfMonth,
+            },
+          },
+          orderBy: {
+            tanggal: "asc",
+          },
+          take: 7,
+        });
+
+        break;
+      case "tahunan":
         data = await prisma.pendapatanHarian.findMany();
         break;
 
@@ -502,10 +516,17 @@ export const getChartDataHarian = async (req, res) => {
         return res.status(400).json({ message: "Mode tidak valid" });
     }
 
-
     res.status(200).json({ data, mode });
   } catch (error) {
-
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
+  }
+};
+
+export const getMoneyTracking = async (req, res) => {
+  try {
+    const data = await prisma.earning.findMany();
+    res.status(200).json({ data: data });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };

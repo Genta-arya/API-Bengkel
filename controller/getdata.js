@@ -4,21 +4,28 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export const getdata = async (req, res) => {
+export const getData = async (req, res) => {
   try {
-    const { page = 1, perPage = 1000} = req.query;
-
-    const skip = (page - 1) * perPage;
-    const take = perPage;
-
-    const users = await prisma.users.findMany({
-      skip,
-      take,
+    // Mendapatkan jumlah data barang
+    const jumlahBarang = await prisma.barang.count();
+    
+    // Mendapatkan jumlah data mekanik
+    const jumlahMekanik = await prisma.mekanik.count();
+    
+    // Mendapatkan jumlah data transaksi
+    const jumlahTransaksi = await prisma.transaksi.count();
+    
+    // Mengembalikan data jumlah dalam respons
+    res.status(200).json({
+      success: true,
+      data: {
+        jumlahBarang,
+        jumlahMekanik,
+        jumlahTransaksi,
+      }
     });
-
-    res.status(200).json({ success: true, data: users });
   } catch (error) {
-    res.status(500).json({ success: false, error: `Error getting users: ${error.message}` });
+    res.status(500).json({ success: false, error: `Error getting data: ${error.message}` });
   } finally {
     await prisma.$disconnect();
   }
