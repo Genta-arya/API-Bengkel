@@ -117,6 +117,16 @@ CREATE TABLE "Mekanik" (
 );
 
 -- CreateTable
+CREATE TABLE "GajiMekanik" (
+    "id" SERIAL NOT NULL,
+    "jumlah" INTEGER NOT NULL,
+    "tanggal" TIMESTAMP(3) NOT NULL,
+    "mekanikId" INTEGER NOT NULL,
+
+    CONSTRAINT "GajiMekanik_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "History" (
     "id" SERIAL NOT NULL,
     "barangId" INTEGER NOT NULL,
@@ -184,6 +194,9 @@ ALTER TABLE "TransaksiBarang" ADD CONSTRAINT "TransaksiBarang_barangId_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "TransaksiBarang" ADD CONSTRAINT "TransaksiBarang_pendapatanId_fkey" FOREIGN KEY ("pendapatanId") REFERENCES "Pendapatan"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GajiMekanik" ADD CONSTRAINT "GajiMekanik_mekanikId_fkey" FOREIGN KEY ("mekanikId") REFERENCES "Mekanik"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "History" ADD CONSTRAINT "History_barangId_fkey" FOREIGN KEY ("barangId") REFERENCES "Barang"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -74,7 +74,7 @@ export const createdTransactions = async (req, res) => {
       existingPendapatanId = existingPendapatan.id;
     }
 
-    const totalAkhir = total + serviceCost;
+    const totalAkhir = total;
     let modalAwal = 0;
 
     if (existingPendapatan) {
@@ -131,22 +131,20 @@ export const createdTransactions = async (req, res) => {
       existingPendapatanHarianId = existingPendapatanHarian.id;
     }
 
-    // Jika ada entitas pendapatan harian yang sudah ada sebelumnya, tambahkan keuntungan dan total pendapatan
     if (existingPendapatanHarianId) {
       await prisma.pendapatanHarian.update({
         where: { id: existingPendapatanHarianId },
         data: {
-          keuntungan: { increment: keuntungan }, // Menambahkan keuntungan
-          totalPendapatan: { increment: totalAkhir }, // Menambahkan totalPendapatan
+          keuntungan: { increment: keuntungan },
+          totalPendapatan: { increment: totalAkhir },
         },
       });
     } else {
-      // Jika tidak ada entitas pendapatan harian yang sudah ada sebelumnya, buat entitas baru
       await prisma.pendapatanHarian.create({
         data: {
           keuntungan: keuntungan,
           totalPendapatan: totalAkhir,
-          tanggal: new Date(), // Tanggal pembuatan entitas pendapatan harian
+          tanggal: new Date(),
         },
       });
     }
@@ -176,7 +174,6 @@ export const createdTransactions = async (req, res) => {
       });
     }
 
-    // Membuat transaksi baru menggunakan Prisma Client
     const newTransaction = await prisma.transaksi.create({
       data: {
         nama,
@@ -200,7 +197,68 @@ export const createdTransactions = async (req, res) => {
       },
     });
 
-    // Mengurangi stok barang sesuai jumlah yang dibeli
+    const todays = new Date();
+    const startDates = new Date(
+      todays.getFullYear(),
+      todays.getMonth(),
+      todays.getDate() - todays.getDay() // Mendapatkan hari pertama dari minggu ini
+    );
+    const endDates = new Date(
+      todays.getFullYear(),
+      todays.getMonth(),
+      todays.getDate() - todays.getDay() + 7 // Mendapatkan hari terakhir dari minggu ini
+    );
+    
+    // Cek apakah data sudah ada untuk mekanik tertentu pada minggu ini
+    const existingGajiMekanik = await prisma.gajiMekanik.findFirst({
+      where: {
+        AND: [
+          {
+            tanggal: {
+              gte: startDates,
+              lt: endDates,
+            },
+          },
+          {
+            mekanikId: mekanikIds,
+          },
+        ],
+      },
+    });
+    
+    if (existingGajiMekanik) {
+      // Jika sudah ada data, lakukan update jumlah gaji
+      await prisma.gajiMekanik.updateMany({
+        where: {
+          AND: [
+            {
+              tanggal: {
+                gte: startDates,
+                lt: endDates,
+              },
+            },
+            {
+              mekanikId: mekanikIds,
+            },
+          ],
+        },
+        data: {
+          jumlah: {
+            increment: parseInt(serviceCost), // Menambahkan serviceCost ke jumlah gaji mekanik
+          },
+        },
+      });
+    } else {
+      // Jika belum ada data, buat data baru
+      await prisma.gajiMekanik.create({
+        data: {
+          jumlah: parseInt(serviceCost), // Menambahkan serviceCost ke jumlah gaji mekanik
+          tanggal: new Date(), // Tanggal pembayaran gaji atau transaksi
+          mekanikId: mekanikIds,
+        },
+      });
+    }
+
     await Promise.all(
       barangIdArray.map(async (id, index) => {
         await prisma.barang.update({
@@ -225,10 +283,11 @@ export const createdTransactions = async (req, res) => {
       })
     );
 
-    // Mengembalikan respons dengan transaksi yang baru dibuat
+  
+
     res.status(201).json(newTransaction);
   } catch (error) {
-    // Menangani kesalahan dan mengembalikan respons dengan pesan kesalahan
+    console.log(error)
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -460,6 +519,7 @@ export const getChartDataHarian = async (req, res) => {
   try {
     let data;
     let tanggal;
+    let totalKeuntungan = 0; // Inisialisasi total keuntungan
 
     // Ambil tanggal saat ini
     const today = new Date();
@@ -487,12 +547,14 @@ export const getChartDataHarian = async (req, res) => {
             },
           },
         });
+
+        // Menghitung total keuntungan dari data
+        totalKeuntungan = data.reduce((acc, curr) => acc + curr.keuntungan, 0);
         break;
 
       case "bulanan":
-        // Filter data pendapatan untuk semua bulan pada tahun ini
-        const startOfMonth = new Date(year, 0, 1); // Mulai tahun ini
-        const endOfMonth = new Date(year + 1, 0, 1); // Akhir tahun ini
+        const startOfMonth = new Date(year, today.getMonth(), 1);
+        const endOfMonth = new Date(year, today.getMonth() + 1, 0);
 
         data = await prisma.pendapatanHarian.findMany({
           where: {
@@ -507,16 +569,24 @@ export const getChartDataHarian = async (req, res) => {
           take: 7,
         });
 
+        // Menghitung total keuntungan dari data
+        totalKeuntungan = data.reduce((acc, curr) => acc + curr.keuntungan, 0);
         break;
+
       case "tahunan":
         data = await prisma.pendapatanHarian.findMany();
+
+        // Menghitung total keuntungan dari data
+        totalKeuntungan = data.reduce((acc, curr) => acc + curr.keuntungan, 0);
         break;
 
       default:
         return res.status(400).json({ message: "Mode tidak valid" });
     }
 
-    res.status(200).json({ data, mode });
+    console.log(totalKeuntungan);
+
+    res.status(200).json({ data, totalKeuntungan, mode }); // Menambahkan totalKeuntungan ke respons
   } catch (error) {
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
   }

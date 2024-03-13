@@ -109,9 +109,21 @@ nama String
 model Mekanik {
   id         Int         @id @default(autoincrement())
   nama       String      @unique
-  noHp       String? @db.Text
-  transaksis Transaksi[]
+  noHp       String?     @db.Text
+  transaksis  Transaksi[]
+  gajis       GajiMekanik[]
 }
+
+model GajiMekanik {
+  id             Int        @id @default(autoincrement())
+  jumlah         Int
+  tanggal        DateTime   // Tanggal pembayaran gaji
+  mekanik        Mekanik    @relation(fields: [mekanikId], references: [id])
+  mekanikId      Int        // Field foreign key yang merujuk ke Mekanik
+}
+
+
+
 
 model History {
   id        Int      @id @default(autoincrement())

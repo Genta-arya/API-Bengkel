@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
+
+
 const prisma = new PrismaClient();
 
 export const Middleware = async (req, res, next) => {
@@ -61,3 +63,5 @@ export const MiddlewareEarning = async (req, res, next) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+

@@ -36,7 +36,8 @@ import {
 } from "../controller/MekanikController.js";
 import { sendMessage } from "../Config/Twilio/Config.js";
 import { Middleware, MiddlewareEarning } from "../controller/Midleware.js";
-import { getData } from "../controller/getdata.js";
+import {  getData } from "../controller/getdata.js";
+import { getGajiTeknisi } from "../controller/GajiController.js";
 
 const router = express.Router();
 
@@ -53,6 +54,7 @@ router.post("/produk", Middleware, createBarang);
 router.put("/produk/:id", Middleware, EditBarang);
 router.delete("/produk/:id", Middleware, deleteBarang);
 router.get("/search/produk", Middleware, searchBarang);
+router.get("/history/update", getHistoryManageItem);
 
 // MekanikController
 router.get("/mekanik", Middleware, getDataMekanik);
@@ -61,12 +63,14 @@ router.get("/search/mekanik", Middleware, searchMekanik);
 router.post("/mekanik", Middleware, createMekanik);
 router.put("/mekanik/:id", Middleware, EditMekanik);
 router.delete("/mekanik/:id", Middleware, DeleteMekanik);
+router.get("/salary/teknisi",getGajiTeknisi)
 
 // Transaksi Controller
 router.post("/transaksi", createdTransactions);
 router.get("/transaksi", getTransaction);
 router.get("/graphic/transaksi", MiddlewareEarning, getChartData);
 router.get("/graphic/harian/transaksi", MiddlewareEarning, getChartDataHarian);
+router.get("/money", MiddlewareEarning, getMoneyTracking);
 
 // Message Controller
 // router.get("/qrchat",getQr)
@@ -75,8 +79,8 @@ router.get("/graphic/harian/transaksi", MiddlewareEarning, getChartDataHarian);
 // Histroy Controller
 router.get("/history", getHistory);
 router.get("/data",getData)
-router.get("/history/update", getHistoryManageItem);
-router.get("/money", MiddlewareEarning, getMoneyTracking);
 
-router.post("/message", sendMessage);
+
+// router.post("/message", sendMessage);
+
 export default router;

@@ -122,12 +122,30 @@ export const DeleteMekanik = async (req, res) => {
   const { id } = req.params;
 
   try {
+    // Temukan entri gaji mekanik yang terkait
+    const existingGajiMekanik = await prisma.gajiMekanik.findFirst({
+      where: {
+        mekanikId: parseInt(id),
+      },
+    });
+
+    if (existingGajiMekanik) {
+      // Hapus entri gaji mekanik yang terkait
+      await prisma.gajiMekanik.delete({
+        where: {
+          id: existingGajiMekanik.id,
+        },
+      });
+    }
+
+    // Hapus transaksi terkait dengan mekanik
     await prisma.transaksi.deleteMany({
       where: {
         mekanikId: parseInt(id),
       },
     });
 
+    // Hapus mekanik
     await prisma.mekanik.delete({
       where: {
         id: parseInt(id),
@@ -136,6 +154,7 @@ export const DeleteMekanik = async (req, res) => {
 
     res.status(200).json({ message: "Mekanik berhasil dihapus" });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Gagal menghapus mekanik" });
   } finally {
     await prisma.$disconnect();
