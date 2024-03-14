@@ -15,6 +15,7 @@ import {
   getChartDataHarian,
   getMoneyTracking,
   getTransaction,
+  searchTransactionByNopol,
 } from "../controller/TransaksiController.js";
 import {
   Logout,
@@ -71,7 +72,7 @@ router.get("/transaksi", getTransaction);
 router.get("/graphic/transaksi", MiddlewareEarning, getChartData);
 router.get("/graphic/harian/transaksi", MiddlewareEarning, getChartDataHarian);
 router.get("/money", MiddlewareEarning, getMoneyTracking);
-
+router.get("/search/transaksi",searchTransactionByNopol)
 // Message Controller
 // router.get("/qrchat",getQr)
 // router.post("/send-whatsapp",sendWhatsAppMessage)
