@@ -270,13 +270,13 @@ export const createdTransactions = async (req, res) => {
           },
         });
 
-        // await prisma.history.create({
-        //   data: {
-        //     barangId: id,
-        //     nama: nama,
-        //     qty: jumlahArray[index],
-        //   },
-        // });
+        await prisma.history.create({
+          data: {
+            barangId: id,
+            nama: nama,
+            qty: jumlahArray[index],
+          },
+        });
       })
     );
 
