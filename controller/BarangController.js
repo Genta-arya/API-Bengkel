@@ -230,7 +230,7 @@ export const EditBarang = async (req, res) => {
     await prisma.historyBarang.create({
       data: {
         barangId: updatedBarang.id,
-        tipe: "edit", // Menandakan bahwa barang telah diedit
+        tipe: "edit", 
         waktu: new Date(),
         nama:nama,
         perubahan: `Informasi barang diubah: nama diubah menjadi ${nama}, harga diubah menjadi ${parsedHarga}, stok diubah menjadi ${parsedStok} , Diskon menjadi ${diskon} dan modal awal menjadi ${modal} , biaya service menjadi ${service}`,
