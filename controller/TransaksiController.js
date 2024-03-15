@@ -227,7 +227,7 @@ export const createdTransactions = async (req, res) => {
     });
 
     if (existingGajiMekanik) {
-      // Jika sudah ada data, lakukan update jumlah gaji
+
       await prisma.gajiMekanik.updateMany({
         where: {
           AND: [
@@ -249,7 +249,7 @@ export const createdTransactions = async (req, res) => {
         },
       });
     } else {
-      // Jika belum ada data, buat data baru
+  
       await prisma.gajiMekanik.create({
         data: {
           jumlah: parseInt(serviceCost), // Menambahkan serviceCost ke jumlah gaji mekanik
