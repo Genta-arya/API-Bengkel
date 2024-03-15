@@ -56,7 +56,7 @@ export const createdTransactions = async (req, res) => {
         )} hanya tersisa ${stokString}`,
       });
     }
-    // Calculate total
+   
     let total = 0;
     let currentModal = 0;
     barangs.forEach((barang, index) => {
@@ -64,7 +64,7 @@ export const createdTransactions = async (req, res) => {
       currentModal = barang.modal * jumlahArray[index];
     });
 
-    // Calculate total with service cost
+
 
     const existingPendapatan = await prisma.pendapatan.findFirst();
 
@@ -99,7 +99,7 @@ export const createdTransactions = async (req, res) => {
           modalAwal: modalAwal,
           keuntungan: keuntungan,
           totalPendapatan: totalAkhir,
-          tanggal: new Date(), // Tanggal pembuatan entitas pendapatan
+          tanggal: new Date(), 
         },
       });
     }
@@ -201,15 +201,14 @@ export const createdTransactions = async (req, res) => {
     const startDates = new Date(
       todays.getFullYear(),
       todays.getMonth(),
-      todays.getDate() - todays.getDay() // Mendapatkan hari pertama dari minggu ini
+      todays.getDate() - todays.getDay()
     );
     const endDates = new Date(
       todays.getFullYear(),
       todays.getMonth(),
-      todays.getDate() - todays.getDay() + 7 // Mendapatkan hari terakhir dari minggu ini
+      todays.getDate() - todays.getDay() + 7
     );
 
-    // Cek apakah data sudah ada untuk mekanik tertentu pada minggu ini
     const existingGajiMekanik = await prisma.gajiMekanik.findFirst({
       where: {
         AND: [
@@ -227,7 +226,6 @@ export const createdTransactions = async (req, res) => {
     });
 
     if (existingGajiMekanik) {
-
       await prisma.gajiMekanik.updateMany({
         where: {
           AND: [
@@ -244,16 +242,15 @@ export const createdTransactions = async (req, res) => {
         },
         data: {
           jumlah: {
-            increment: parseInt(serviceCost), // Menambahkan serviceCost ke jumlah gaji mekanik
+            increment: parseInt(serviceCost),
           },
         },
       });
     } else {
-  
       await prisma.gajiMekanik.create({
         data: {
-          jumlah: parseInt(serviceCost), // Menambahkan serviceCost ke jumlah gaji mekanik
-          tanggal: new Date(), // Tanggal pembayaran gaji atau transaksi
+          jumlah: parseInt(serviceCost),
+          tanggal: new Date(),
           mekanikId: mekanikIds,
         },
       });
@@ -273,22 +270,31 @@ export const createdTransactions = async (req, res) => {
           },
         });
 
-        await prisma.history.create({
-          data: {
-            barangId: id,
-            nama: nama,
-            qty: jumlahArray[index],
-          },
-        });
+        // await prisma.history.create({
+        //   data: {
+        //     barangId: id,
+        //     nama: nama,
+        //     qty: jumlahArray[index],
+        //   },
+        // });
       })
     );
 
     res.status(201).json(newTransaction);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
+
+
+
+
+
+
+
 
 export const getTransaction = async (req, res) => {
   try {
@@ -328,12 +334,11 @@ export const getTransaction = async (req, res) => {
   }
 };
 
-
 export const searchTransactionByNopol = async (req, res) => {
   try {
     const { nopol, currentPage = 1, limit = 2 } = req.query;
 
-    console.log(nopol)
+    console.log(nopol);
 
     const skip = (parseInt(currentPage) - 1) * parseInt(limit);
     const take = parseInt(limit);
@@ -341,7 +346,7 @@ export const searchTransactionByNopol = async (req, res) => {
     if (!nopol) {
       return res.status(400).json({ error: "Nomor polisi diperlukan" });
     }
-    
+
     // Menggunakan Prisma Client untuk mencari transaksi berdasarkan nopol
     const transactionsByNopol = await prisma.transaksi.findMany({
       where: {
@@ -361,24 +366,24 @@ export const searchTransactionByNopol = async (req, res) => {
       skip: skip,
       take: take,
     });
-    
+
     // Periksa apakah transaksi ditemukan
     if (transactionsByNopol.length === 0) {
       return res.status(404).json({ error: "Transaksi tidak ditemukan" });
     }
-    
+
     // Menghitung total halaman berdasarkan jumlah data
     const totalData = await prisma.transaksi.count({
       where: {
         nopol: {
           contains: nopol,
-          mode:"insensitive"
+          mode: "insensitive",
         },
       },
     });
-    console.log(totalData)
+    console.log(totalData);
     const totalPages = Math.ceil(totalData / take);
-    
+
     // Mengembalikan hasil pencarian beserta informasi paginasi
     res.status(200).json({
       data: transactionsByNopol,
@@ -392,8 +397,6 @@ export const searchTransactionByNopol = async (req, res) => {
     await prisma.$disconnect(); // Disconnect from the database when done
   }
 };
-
-
 
 export const getChartData = async (req, res) => {
   const { mode } = req.query;
