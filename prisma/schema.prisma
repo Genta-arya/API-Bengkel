@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 
 }
 model users {
@@ -36,7 +37,7 @@ model Transaksi {
   motor            String
   noHp             String?
   nopol            String
-  detail           String
+  detail           String @db.Text
   total            Float
   totalService     Float?
   tanggal          DateTime          @default(now())
@@ -139,7 +140,7 @@ model qrcht {
   url String
 }
 
-model Auth {
+model auth {
   uid       Int     @id @default(autoincrement())
   username  String  @unique @db.VarChar(255)
   email     String  @unique @db.VarChar(255)

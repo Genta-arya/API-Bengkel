@@ -63,7 +63,7 @@ export const handleRegister = async (req, res) => {
       .status(201)
       .json({ data: userResponse, message: "created succes", status: 201 });
   } catch (error) {
-  
+  console.log(error)
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
