@@ -323,7 +323,7 @@ export const deleteBarang = async (req, res) => {
 };
 
 export const getBarang = async (req, res) => {
-  const { page = 1, perPage = 15 } = req.query;
+  const { page = 1, perPage = 50 } = req.query;
   try {
     const skip = (page - 1) * perPage;
     const take = perPage;

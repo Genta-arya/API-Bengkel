@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 export const getDataMekanik = async (req, res) => {
   try {
-    const { page = 1, pageSize = 10 } = req.query;
+    const { page = 1, pageSize = 20} = req.query;
     const offset = (page - 1) * pageSize;
     const pageInt = parseInt(page);
     const mekaniks = await prisma.mekanik.findMany({
