@@ -5,33 +5,35 @@ const prisma = new PrismaClient();
 
 
 
-
 export const getGajiTeknisi = async (req, res) => {
   try {
-    const today = new Date();
-    const startOfWeek = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate() - today.getDay() // Hari pertama dari minggu ini
-    );
-    const endOfWeek = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate() - today.getDay() + 7 // Hari terakhir dari minggu ini
-    );
+    // Mengambil tanggal pertama dari data gajiMekanik yang ada di database
+    const firstGaji = await prisma.gajiMekanik.findFirst({
+      orderBy: {
+        tanggal: 'asc', // Urutkan berdasarkan tanggal secara menaik
+      },
+    });
 
-    // Query untuk mendapatkan data gaji teknisi per minggu
+    if (!firstGaji) {
+      throw new Error('No data available in gajiMekanik table');
+    }
+
+    const startDate = new Date(firstGaji.tanggal); // Menggunakan tanggal pertama dari data
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 7); // Mengatur tanggal akhir setelah 7 hari dari tanggal awal
+
+    console.log('Periode Mulai:', startDate.toISOString());
+    console.log('Periode Selesai:', endDate.toISOString());
     const gajiTeknisi = await prisma.gajiMekanik.findMany({
       where: {
         AND: [
           {
             tanggal: {
-              gte: startOfWeek,
-              lt: endOfWeek,
+              gte: startDate,
+              lt: endDate,
             },
           },
         ],
-        
       },
       include: {
         mekanik: true

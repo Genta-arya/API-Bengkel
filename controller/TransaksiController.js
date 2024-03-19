@@ -21,7 +21,6 @@ export const createdTransactions = async (req, res) => {
     const mekanikIds = parseInt(mekanikId, 10);
     const serviceCost = parseInt(service, 10);
 
-
     // Check if nama is not null or undefined
     if (!nama) {
       return res.status(400).json({ error: "Nama is required" });
@@ -75,7 +74,6 @@ export const createdTransactions = async (req, res) => {
 
     const totalAkhir = total;
 
-   
     let modalAwal = 0;
 
     if (existingPendapatan) {
@@ -84,8 +82,6 @@ export const createdTransactions = async (req, res) => {
 
     const earning = totalAkhir;
     const keuntungan = earning - currentModal;
-
-
 
     if (existingPendapatanId) {
       await prisma.pendapatan.update({
@@ -106,6 +102,7 @@ export const createdTransactions = async (req, res) => {
         },
       });
     }
+
     let existingPendapatanHarianId = null;
 
     const today = new Date();
@@ -114,14 +111,15 @@ export const createdTransactions = async (req, res) => {
       today.getMonth(),
       today.getDate()
     );
+
     let endDate = new Date(startDate);
 
     if (today.getMonth() !== 11) {
       // Bulan-bulan kecuali Desember
-      endDate.setMonth(endDate.getMonth() + 1); // Tambahkan 1 bulan
+      endDate.setMonth(endDate.getMonth() + 1);
     } else {
       // Bulan Desember
-      endDate.setFullYear(endDate.getFullYear() + 1); // Tambahkan 1 tahun
+      endDate.setFullYear(endDate.getFullYear() + 1);
     }
 
     const existingPendapatanHarian = await prisma.pendapatanHarian.findFirst({
@@ -146,6 +144,7 @@ export const createdTransactions = async (req, res) => {
           totalPendapatan: { increment: totalAkhir },
         },
       });
+      console.log(`Pendapatan harian Data diperbarui untuk periode dari ${startDate.toDateString()} hingga ${endDate.toDateString()}`);
     } else {
       const newPendapatanHarian = await prisma.pendapatanHarian.create({
         data: {
@@ -155,6 +154,7 @@ export const createdTransactions = async (req, res) => {
           tanggal: new Date(),
         },
       });
+      console.log(`Pendapatan harian Entitas baru dibuat untuk periode dari ${startDate.toDateString()} hingga ${endDate.toDateString()}`);
     }
 
     const existingEarning = await prisma.earning.findFirst({
@@ -165,6 +165,8 @@ export const createdTransactions = async (req, res) => {
         },
       },
     });
+
+
 
     let existingEarningId = null;
 
@@ -185,7 +187,7 @@ export const createdTransactions = async (req, res) => {
         where: {
           id: existingEarningId,
         },
-        data: { uang_masuk: { increment: totalAkhir }, tanggal: new Date() },
+        data: { uang_masuk: { increment: totalAkhir } },
       });
     }
 
@@ -212,25 +214,27 @@ export const createdTransactions = async (req, res) => {
       },
     });
 
-    const todays = new Date();
-    const startDates = new Date(
-      todays.getFullYear(),
-      todays.getMonth(),
-      todays.getDate() - todays.getDay()
-    );
-    const endDates = new Date(
-      todays.getFullYear(),
-      todays.getMonth(),
-      todays.getDate() - todays.getDay() + 7
-    );
-
+    const firstGaji = await prisma.gajiMekanik.findFirst({
+      orderBy: {
+        tanggal: 'asc', // Urutkan berdasarkan tanggal secara menaik
+      },
+    });
+    
+    if (!firstGaji) {
+      throw new Error('No data available in gajiMekanik table');
+    }
+    
+    const startDates = new Date(firstGaji.tanggal); // Menggunakan tanggal pertama dari data
+    const endDates = new Date(startDates);
+    endDates.setDate(startDates.getDate() + 7); // Menambahkan 7 hari dari tanggal pertama
+    
     const existingGajiMekanik = await prisma.gajiMekanik.findFirst({
       where: {
         AND: [
           {
             tanggal: {
-              gte: startDates,
-              lt: endDates,
+              gte: startDate,
+              lt: endDate,
             },
           },
           {
@@ -239,7 +243,7 @@ export const createdTransactions = async (req, res) => {
         ],
       },
     });
-
+    
     if (existingGajiMekanik) {
       await prisma.gajiMekanik.updateMany({
         where: {
@@ -260,7 +264,9 @@ export const createdTransactions = async (req, res) => {
             increment: parseInt(serviceCost),
           },
         },
+        
       });
+      console.log(`Data Gaji diperbarui untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`);
     } else {
       await prisma.gajiMekanik.create({
         data: {
@@ -269,7 +275,10 @@ export const createdTransactions = async (req, res) => {
           mekanikId: mekanikIds,
         },
       });
+      console.log(`Entitas Gaji baru dibuat untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`);
     }
+
+
 
     await Promise.all(
       barangIdArray.map(async (id, index) => {
@@ -358,12 +367,11 @@ export const getAllTransaction = async (req, res) => {
           gte: startDates,
           lt: endDates,
         },
-        
       },
-      select:{
-        totalPendapatan:true,
-        keuntungan:true
-      }
+      select: {
+        totalPendapatan: true,
+        keuntungan: true,
+      },
     });
 
     const transaksi = await prisma.transaksi.findMany({
@@ -391,13 +399,13 @@ export const getAllTransaction = async (req, res) => {
     const formattedTransaksi = transaksi.map((item) => {
       return {
         ...item,
-        pendapatanKotor: item.total + totalService + pendapatan[0].totalPendapatan,
+        pendapatanKotor:
+          item.total + totalService + pendapatan[0].totalPendapatan,
       };
     });
-    const total =  pendapatan[0].totalPendapatan
-    const pendapatanKotor = totalService + total
-    
-    
+    const total = pendapatan[0].totalPendapatan;
+    const pendapatanKotor = totalService + total;
+
     const formatDate = (date) => {
       const day = date.getDate().toString().padStart(2, "0");
       const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Perlu ditambah 1 karena bulan dimulai dari 0
@@ -409,8 +417,13 @@ export const getAllTransaction = async (req, res) => {
     const formattedEndDate = formatDate(endDates);
 
     const periode = `${formattedStartDate} sampai ${formattedEndDate}`;
-
-    res.status(200).json({ data: transaksi , pendapatan , periode,  pendapatanKotor: pendapatanKotor }); // Mengirim data transaksi sebagai respons
+    console.log(`Data Transaksi saat ini untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`);
+    res.status(200).json({
+      data: transaksi,
+      pendapatan,
+      periode,
+      pendapatanKotor: pendapatanKotor,
+    }); // Mengirim data transaksi sebagai respons
   } catch (error) {
     console.error("Error fetching transactions:", error);
     res.status(500).send("Error fetching transactions");
@@ -588,17 +601,15 @@ export const getChartDataHarian = async (req, res) => {
           today.getFullYear(),
           today.getMonth(),
           today.getDate()
-        ); // Tanggal awal dari tanggal saat ini
+        );
 
-        let endDates = new Date(startDates); // Buat salinan dari startDates untuk diubah nilainya
+        let endDates = new Date(startDates);
 
-        // Tambahkan 30 hari ke endDates atau tambahkan 1 bulan kecuali jika bulan saat ini adalah Desember
         if (today.getMonth() !== 11) {
-          // Bulan-bulan kecuali Desember
-          endDates.setMonth(endDates.getMonth() + 1); // Tambahkan 1 bulan
+          endDates.setMonth(endDates.getMonth() + 1);
         } else {
           // Bulan Desember
-          endDates.setFullYear(endDates.getFullYear() + 1); // Tambahkan 1 tahun
+          endDates.setFullYear(endDates.getFullYear() + 1);
         }
 
         data = await prisma.pendapatanHarian.findMany({
@@ -614,7 +625,6 @@ export const getChartDataHarian = async (req, res) => {
           take: 7,
         });
 
-        // Menghitung total keuntungan dari data
         totalKeuntungan = data.reduce((acc, curr) => acc + curr.keuntungan, 0);
         break;
 
@@ -644,8 +654,8 @@ export const getChartDataHarian = async (req, res) => {
     });
 
     function formatDate(date) {
-      const day = String(date.getDate()).padStart(2, "0"); // Ambil tanggal dengan padding 0 jika perlu
-      const month = String(date.getMonth() + 1).padStart(2, "0"); // Ambil bulan dengan padding 0 jika perlu (Ingat: bulan dimulai dari 0)
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear(); // Ambil tahun
 
       return `${day}-${month}-${year}`; // Format tanggal sesuai dd-mm-yyyy
@@ -662,7 +672,7 @@ export const getChartDataHarian = async (req, res) => {
     if (today.getMonth() !== 11) {
       endDates.setMonth(endDates.getMonth() + 1);
     } else {
-      endDates.setFullYear(endDates.getFullYear() + 1); // Tambahkan 1 tahun
+      endDates.setFullYear(endDates.getFullYear() + 1);
     }
     const formattedStartDate = formatDate(today);
     const formattedEndDate = formatDate(endDates);
@@ -681,6 +691,7 @@ export const getChartDataHarian = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
   }
 };
+
 export const getMoneyTracking = async (req, res) => {
   const today = new Date();
 
@@ -688,16 +699,14 @@ export const getMoneyTracking = async (req, res) => {
     today.getFullYear(),
     today.getMonth(),
     today.getDate()
-  ); // Tanggal awal dari tanggal saat ini
+  );
 
   let endDates = new Date(today);
 
   if (today.getMonth() !== 11) {
-    // Bulan-bulan kecuali Desember
     endDates.setMonth(endDates.getMonth() + 1);
   } else {
-    // Bulan Desember
-    endDates.setFullYear(endDates.getFullYear() + 1); // Tambahkan 1 tahun
+    endDates.setFullYear(endDates.getFullYear() + 1);
   }
 
   try {
