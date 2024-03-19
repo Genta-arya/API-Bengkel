@@ -298,7 +298,7 @@ export const deleteBarang = async (req, res) => {
         perubahan: `Barang dengan nama ${barangToDelete.nama} telah dihapus dari daftar.`,
       },
     });
-    const modalToDelete = barangToDelete.modal * barangToDelete.stok;
+    const modalToDelete = barangToDelete.modal *  (barangToDelete.stok + barangToDelete.laku);
 
     const existingPendapatan = await prisma.pendapatan.findFirst();
 

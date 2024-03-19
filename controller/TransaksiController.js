@@ -21,7 +21,6 @@ export const createdTransactions = async (req, res) => {
     const mekanikIds = parseInt(mekanikId, 10);
     const serviceCost = parseInt(service, 10);
 
-    console.log("harga service", serviceCost)
 
     // Check if nama is not null or undefined
     if (!nama) {
@@ -75,6 +74,8 @@ export const createdTransactions = async (req, res) => {
     }
 
     const totalAkhir = total;
+
+   
     let modalAwal = 0;
 
     if (existingPendapatan) {
@@ -83,7 +84,8 @@ export const createdTransactions = async (req, res) => {
 
     const earning = totalAkhir;
     const keuntungan = earning - currentModal;
-    console.log(`${earning} -  ${currentModal} `);
+
+
 
     if (existingPendapatanId) {
       await prisma.pendapatan.update({
@@ -106,16 +108,14 @@ export const createdTransactions = async (req, res) => {
     }
     let existingPendapatanHarianId = null;
 
-
     const today = new Date();
     const startDate = new Date(
       today.getFullYear(),
       today.getMonth(),
       today.getDate()
-    ); 
-    let endDate = new Date(startDate); 
+    );
+    let endDate = new Date(startDate);
 
-  
     if (today.getMonth() !== 11) {
       // Bulan-bulan kecuali Desember
       endDate.setMonth(endDate.getMonth() + 1); // Tambahkan 1 bulan
@@ -123,7 +123,6 @@ export const createdTransactions = async (req, res) => {
       // Bulan Desember
       endDate.setFullYear(endDate.getFullYear() + 1); // Tambahkan 1 tahun
     }
-
 
     const existingPendapatanHarian = await prisma.pendapatanHarian.findFirst({
       where: {
@@ -156,19 +155,16 @@ export const createdTransactions = async (req, res) => {
           tanggal: new Date(),
         },
       });
-
-
     }
 
     const existingEarning = await prisma.earning.findFirst({
-      where:{
+      where: {
         tanggal: {
           gte: startDate,
           lt: endDate,
         },
-      }
+      },
     });
- 
 
     let existingEarningId = null;
 
@@ -344,11 +340,86 @@ export const getTransaction = async (req, res) => {
   }
 };
 
+export const getAllTransaction = async (req, res) => {
+  try {
+    const today = new Date();
+    const startDates = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    ); // Tanggal awal dari bulan saat ini
+
+    let endDates = new Date(today); // Buat salinan dari today untuk diubah nilainya
+    endDates.setMonth(endDates.getMonth() + 1);
+
+    const pendapatan = await prisma.pendapatanHarian.findMany({
+      where: {
+        tanggal: {
+          gte: startDates,
+          lt: endDates,
+        },
+        
+      },
+      select:{
+        totalPendapatan:true,
+        keuntungan:true
+      }
+    });
+
+    const transaksi = await prisma.transaksi.findMany({
+      include: {
+        mekanik: true,
+        transaksiBarangs: {
+          include: {
+            barang: true,
+          },
+        },
+      },
+      where: {
+        tanggal: {
+          gte: startDates, // Transaksi setelah atau sama dengan awal bulan
+          lt: endDates, // Transaksi sebelum akhir bulan
+        },
+      },
+    });
+
+    const totalService = transaksi.reduce(
+      (acc, curr) => acc + curr.totalService,
+      0
+    );
+
+    const formattedTransaksi = transaksi.map((item) => {
+      return {
+        ...item,
+        pendapatanKotor: item.total + totalService + pendapatan[0].totalPendapatan,
+      };
+    });
+    const total =  pendapatan[0].totalPendapatan
+    const pendapatanKotor = totalService + total
+    
+    
+    const formatDate = (date) => {
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Perlu ditambah 1 karena bulan dimulai dari 0
+      const year = date.getFullYear().toString();
+      return `${day}-${month}-${year}`;
+    };
+
+    const formattedStartDate = formatDate(startDates);
+    const formattedEndDate = formatDate(endDates);
+
+    const periode = `${formattedStartDate} sampai ${formattedEndDate}`;
+
+    res.status(200).json({ data: transaksi , pendapatan , periode,  pendapatanKotor: pendapatanKotor }); // Mengirim data transaksi sebagai respons
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    res.status(500).send("Error fetching transactions");
+  }
+};
+
 export const searchTransactionByNopol = async (req, res) => {
   try {
     const { nopol, currentPage = 1, limit = 2 } = req.query;
-
-   
 
     const skip = (parseInt(currentPage) - 1) * parseInt(limit);
     const take = parseInt(limit);
@@ -389,7 +460,7 @@ export const searchTransactionByNopol = async (req, res) => {
         },
       },
     });
-   
+
     const totalPages = Math.ceil(totalData / take);
 
     // Mengembalikan hasil pencarian beserta informasi paginasi
@@ -530,7 +601,6 @@ export const getChartDataHarian = async (req, res) => {
           endDates.setFullYear(endDates.getFullYear() + 1); // Tambahkan 1 tahun
         }
 
-       
         data = await prisma.pendapatanHarian.findMany({
           where: {
             tanggal: {
@@ -599,15 +669,13 @@ export const getChartDataHarian = async (req, res) => {
 
     const formattedMessage = `Periode ${formattedStartDate} - ${formattedEndDate}`;
 
-
-
     res.status(200).json({
       data,
       totalKeuntungan,
       modalAwal,
       mode,
       message: `${formattedMessage}`,
-    }); // Menambahkan totalKeuntungan ke respons
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
@@ -622,16 +690,15 @@ export const getMoneyTracking = async (req, res) => {
     today.getDate()
   ); // Tanggal awal dari tanggal saat ini
 
-  let endDates = new Date(today); 
- 
+  let endDates = new Date(today);
+
   if (today.getMonth() !== 11) {
     // Bulan-bulan kecuali Desember
-    endDates.setMonth(endDates.getMonth() + 1); 
+    endDates.setMonth(endDates.getMonth() + 1);
   } else {
     // Bulan Desember
     endDates.setFullYear(endDates.getFullYear() + 1); // Tambahkan 1 tahun
   }
- 
 
   try {
     const data = await prisma.earning.findMany({

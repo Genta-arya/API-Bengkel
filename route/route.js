@@ -11,6 +11,7 @@ import {
 
 import {
   createdTransactions,
+  getAllTransaction,
   getChartData,
   getChartDataHarian,
   getMoneyTracking,
@@ -73,6 +74,7 @@ router.get("/graphic/transaksi", MiddlewareEarning, getChartData);
 router.get("/graphic/harian/transaksi", MiddlewareEarning, getChartDataHarian);
 router.get("/money", MiddlewareEarning, getMoneyTracking);
 router.get("/search/transaksi",searchTransactionByNopol)
+router.get("/all/transaksi",getAllTransaction)
 // Message Controller
 // router.get("/qrchat",getQr)
 // router.post("/send-whatsapp",sendWhatsAppMessage)
