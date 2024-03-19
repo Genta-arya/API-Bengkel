@@ -21,6 +21,8 @@ export const createdTransactions = async (req, res) => {
     const mekanikIds = parseInt(mekanikId, 10);
     const serviceCost = parseInt(service, 10);
 
+    console.log("harga service", serviceCost)
+
     // Check if nama is not null or undefined
     if (!nama) {
       return res.status(400).json({ error: "Nama is required" });
@@ -56,15 +58,13 @@ export const createdTransactions = async (req, res) => {
         )} hanya tersisa ${stokString}`,
       });
     }
-   
+
     let total = 0;
     let currentModal = 0;
     barangs.forEach((barang, index) => {
       total += barang.harga * jumlahArray[index];
-      currentModal = barang.modal * jumlahArray[index];
+      currentModal += barang.modal * jumlahArray[index];
     });
-
-
 
     const existingPendapatan = await prisma.pendapatan.findFirst();
 
@@ -83,6 +83,7 @@ export const createdTransactions = async (req, res) => {
 
     const earning = totalAkhir;
     const keuntungan = earning - currentModal;
+    console.log(`${earning} -  ${currentModal} `);
 
     if (existingPendapatanId) {
       await prisma.pendapatan.update({
@@ -99,24 +100,30 @@ export const createdTransactions = async (req, res) => {
           modalAwal: modalAwal,
           keuntungan: keuntungan,
           totalPendapatan: totalAkhir,
-          tanggal: new Date(), 
+          tanggal: new Date(),
         },
       });
     }
-
     let existingPendapatanHarianId = null;
+
 
     const today = new Date();
     const startDate = new Date(
       today.getFullYear(),
       today.getMonth(),
       today.getDate()
-    );
-    const endDate = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate() + 1
-    );
+    ); 
+    let endDate = new Date(startDate); 
+
+  
+    if (today.getMonth() !== 11) {
+      // Bulan-bulan kecuali Desember
+      endDate.setMonth(endDate.getMonth() + 1); // Tambahkan 1 bulan
+    } else {
+      // Bulan Desember
+      endDate.setFullYear(endDate.getFullYear() + 1); // Tambahkan 1 tahun
+    }
+
 
     const existingPendapatanHarian = await prisma.pendapatanHarian.findFirst({
       where: {
@@ -136,20 +143,32 @@ export const createdTransactions = async (req, res) => {
         where: { id: existingPendapatanHarianId },
         data: {
           keuntungan: { increment: keuntungan },
+          modalAwal: { increment: modalAwal },
           totalPendapatan: { increment: totalAkhir },
         },
       });
     } else {
-      await prisma.pendapatanHarian.create({
+      const newPendapatanHarian = await prisma.pendapatanHarian.create({
         data: {
           keuntungan: keuntungan,
+          modalAwal: modalAwal,
           totalPendapatan: totalAkhir,
           tanggal: new Date(),
         },
       });
+
+
     }
 
-    const existingEarning = await prisma.earning.findFirst();
+    const existingEarning = await prisma.earning.findFirst({
+      where:{
+        tanggal: {
+          gte: startDate,
+          lt: endDate,
+        },
+      }
+    });
+ 
 
     let existingEarningId = null;
 
@@ -287,15 +306,6 @@ export const createdTransactions = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
 export const getTransaction = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -338,7 +348,7 @@ export const searchTransactionByNopol = async (req, res) => {
   try {
     const { nopol, currentPage = 1, limit = 2 } = req.query;
 
-    console.log(nopol);
+   
 
     const skip = (parseInt(currentPage) - 1) * parseInt(limit);
     const take = parseInt(limit);
@@ -351,7 +361,6 @@ export const searchTransactionByNopol = async (req, res) => {
     const transactionsByNopol = await prisma.transaksi.findMany({
       where: {
         nopol: {
-        
           contains: nopol,
         },
       },
@@ -377,11 +386,10 @@ export const searchTransactionByNopol = async (req, res) => {
       where: {
         nopol: {
           contains: nopol,
-          
         },
       },
     });
-    console.log(totalData);
+   
     const totalPages = Math.ceil(totalData / take);
 
     // Mengembalikan hasil pencarian beserta informasi paginasi
@@ -462,11 +470,13 @@ export const getChartData = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
   }
 };
+
 export const getChartDataHarian = async (req, res) => {
   const { mode } = req.query;
 
   try {
     let data;
+    let modalAwal;
     let tanggal;
     let totalKeuntungan = 0; // Inisialisasi total keuntungan
 
@@ -502,14 +512,30 @@ export const getChartDataHarian = async (req, res) => {
         break;
 
       case "bulanan":
-        const startOfMonth = new Date(year, today.getMonth(), 1);
-        const endOfMonth = new Date(year, today.getMonth() + 1, 0);
+        const today = new Date();
+        const startDates = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        ); // Tanggal awal dari tanggal saat ini
 
+        let endDates = new Date(startDates); // Buat salinan dari startDates untuk diubah nilainya
+
+        // Tambahkan 30 hari ke endDates atau tambahkan 1 bulan kecuali jika bulan saat ini adalah Desember
+        if (today.getMonth() !== 11) {
+          // Bulan-bulan kecuali Desember
+          endDates.setMonth(endDates.getMonth() + 1); // Tambahkan 1 bulan
+        } else {
+          // Bulan Desember
+          endDates.setFullYear(endDates.getFullYear() + 1); // Tambahkan 1 tahun
+        }
+
+       
         data = await prisma.pendapatanHarian.findMany({
           where: {
             tanggal: {
-              gte: startOfMonth,
-              lt: endOfMonth,
+              gte: startDates,
+              lt: endDates,
             },
           },
           orderBy: {
@@ -533,17 +559,89 @@ export const getChartDataHarian = async (req, res) => {
         return res.status(400).json({ message: "Mode tidak valid" });
     }
 
-    console.log(totalKeuntungan);
+    const startOfMonth = new Date(year, today.getMonth(), 1);
+    const endOfMonth = new Date(year, today.getMonth() + 1, 0);
+    modalAwal = await prisma.pendapatan.findMany({
+      where: {
+        tanggal: {
+          gte: startOfMonth,
+          lt: endOfMonth,
+        },
+      },
+      select: {
+        modalAwal: true,
+      },
+    });
 
-    res.status(200).json({ data, totalKeuntungan, mode }); // Menambahkan totalKeuntungan ke respons
+    function formatDate(date) {
+      const day = String(date.getDate()).padStart(2, "0"); // Ambil tanggal dengan padding 0 jika perlu
+      const month = String(date.getMonth() + 1).padStart(2, "0"); // Ambil bulan dengan padding 0 jika perlu (Ingat: bulan dimulai dari 0)
+      const year = date.getFullYear(); // Ambil tahun
+
+      return `${day}-${month}-${year}`; // Format tanggal sesuai dd-mm-yyyy
+    }
+
+    const startDates = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
+    let endDates = new Date(startDates);
+
+    if (today.getMonth() !== 11) {
+      endDates.setMonth(endDates.getMonth() + 1);
+    } else {
+      endDates.setFullYear(endDates.getFullYear() + 1); // Tambahkan 1 tahun
+    }
+    const formattedStartDate = formatDate(today);
+    const formattedEndDate = formatDate(endDates);
+
+    const formattedMessage = `Periode ${formattedStartDate} - ${formattedEndDate}`;
+
+
+
+    res.status(200).json({
+      data,
+      totalKeuntungan,
+      modalAwal,
+      mode,
+      message: `${formattedMessage}`,
+    }); // Menambahkan totalKeuntungan ke respons
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Terjadi kesalahan saat memuat data" });
   }
 };
-
 export const getMoneyTracking = async (req, res) => {
+  const today = new Date();
+
+  const startDates = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  ); // Tanggal awal dari tanggal saat ini
+
+  let endDates = new Date(today); 
+ 
+  if (today.getMonth() !== 11) {
+    // Bulan-bulan kecuali Desember
+    endDates.setMonth(endDates.getMonth() + 1); 
+  } else {
+    // Bulan Desember
+    endDates.setFullYear(endDates.getFullYear() + 1); // Tambahkan 1 tahun
+  }
+ 
+
   try {
-    const data = await prisma.earning.findMany();
+    const data = await prisma.earning.findMany({
+      where: {
+        tanggal: {
+          gte: startDates,
+          lt: endDates,
+        },
+      },
+    });
     res.status(200).json({ data: data });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });

@@ -109,6 +109,9 @@ export const createBarang = async (req, res) => {
         data: { modalAwal: { increment: modalAwal }, tanggal: new Date() },
       });
     }
+    
+
+  
 
     const existingEarning = await prisma.earning.findFirst();
 
@@ -205,6 +208,17 @@ export const EditBarang = async (req, res) => {
       existingPendapatanId = existingPendapatan.id;
     }
 
+    if (existingPendapatanId) {
+      await prisma.pendapatan.update({
+        where: { id: existingPendapatanId },
+        data: {
+          modalAwal: { increment: modalDifference },
+          tanggal: new Date(),
+        },
+      });
+    }
+
+
     const updatedBarang = await prisma.barang.update({
       where: { id: parseInt(req.params.id) },
       data: {
@@ -217,22 +231,12 @@ export const EditBarang = async (req, res) => {
       },
     });
 
-    if (existingPendapatanId) {
-      await prisma.pendapatan.update({
-        where: { id: existingPendapatanId },
-        data: {
-          modalAwal: { increment: modalDifference },
-          tanggal: new Date(),
-        },
-      });
-    }
-
     await prisma.historyBarang.create({
       data: {
         barangId: updatedBarang.id,
-        tipe: "edit", 
+        tipe: "edit",
         waktu: new Date(),
-        nama:nama,
+        nama: nama,
         perubahan: `Informasi barang diubah: nama diubah menjadi ${nama}, harga diubah menjadi ${parsedHarga}, stok diubah menjadi ${parsedStok} , Diskon menjadi ${diskon} dan modal awal menjadi ${modal} , biaya service menjadi ${service}`,
       },
     });
@@ -317,7 +321,7 @@ export const deleteBarang = async (req, res) => {
 
     res.status(200).json({ message: "Barang berhasil dihapus" });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -379,7 +383,6 @@ export const searchBarang = async (req, res) => {
       where: {
         nama: {
           contains: q,
-        
         },
       },
       skip,
@@ -394,7 +397,6 @@ export const searchBarang = async (req, res) => {
       where: {
         nama: {
           contains: q,
-         
         },
       },
     });

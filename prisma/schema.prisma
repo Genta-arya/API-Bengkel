@@ -7,11 +7,11 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
-
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
+
 model users {
   id         Int     @id @default(autoincrement())
   first_name String
@@ -37,7 +37,7 @@ model Transaksi {
   motor            String
   noHp             String?
   nopol            String
-  detail           String @db.Text
+  detail           String            @db.Text
   total            Float
   totalService     Float?
   tanggal          DateTime          @default(now())
@@ -71,6 +71,7 @@ model PendapatanHarian {
 
   keuntungan      Int      @default(0)
   totalPendapatan Int      @default(0)
+  modalAwal       Int      @default(0)
   tanggal         DateTime
 }
 
@@ -94,37 +95,32 @@ model Barang {
   barcodes   Barcode[]
   transaksis TransaksiBarang[]
   histories  History[]
-
- 
 }
 
 model HistoryBarang {
-  id         Int               @id @default(autoincrement())
-  barangId   Int
-  tipe       String            
-  waktu      DateTime          @default(now())
-  perubahan  String            
-nama String
+  id        Int      @id @default(autoincrement())
+  barangId  Int
+  tipe      String
+  waktu     DateTime @default(now())
+  perubahan String
+  nama      String
 }
 
 model Mekanik {
-  id         Int         @id @default(autoincrement())
-  nama       String      @unique
-  noHp       String?     @db.Text
-  transaksis  Transaksi[]
-  gajis       GajiMekanik[]
+  id         Int           @id @default(autoincrement())
+  nama       String        @unique
+  noHp       String?       @db.Text
+  transaksis Transaksi[]
+  gajis      GajiMekanik[]
 }
 
 model GajiMekanik {
-  id             Int        @id @default(autoincrement())
-  jumlah         Int
-  tanggal        DateTime   // Tanggal pembayaran gaji
-  mekanik        Mekanik    @relation(fields: [mekanikId], references: [id])
-  mekanikId      Int        // Field foreign key yang merujuk ke Mekanik
+  id        Int      @id @default(autoincrement())
+  jumlah    Int
+  tanggal   DateTime // Tanggal pembayaran gaji
+  mekanik   Mekanik  @relation(fields: [mekanikId], references: [id])
+  mekanikId Int // Field foreign key yang merujuk ke Mekanik
 }
-
-
-
 
 model History {
   id        Int      @id @default(autoincrement())

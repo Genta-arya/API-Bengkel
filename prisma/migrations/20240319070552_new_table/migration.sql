@@ -67,6 +67,7 @@ CREATE TABLE `PendapatanHarian` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `keuntungan` INTEGER NOT NULL DEFAULT 0,
     `totalPendapatan` INTEGER NOT NULL DEFAULT 0,
+    `modalAwal` INTEGER NOT NULL DEFAULT 0,
     `tanggal` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`id`)
