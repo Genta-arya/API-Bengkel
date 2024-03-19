@@ -379,7 +379,7 @@ export const searchBarang = async (req, res) => {
       where: {
         nama: {
           contains: q,
-          mode: "insensitive",
+        
         },
       },
       skip,
@@ -394,7 +394,7 @@ export const searchBarang = async (req, res) => {
       where: {
         nama: {
           contains: q,
-          mode: "insensitive",
+         
         },
       },
     });

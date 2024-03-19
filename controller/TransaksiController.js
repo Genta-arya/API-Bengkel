@@ -351,7 +351,7 @@ export const searchTransactionByNopol = async (req, res) => {
     const transactionsByNopol = await prisma.transaksi.findMany({
       where: {
         nopol: {
-          mode: "insensitive",
+        
           contains: nopol,
         },
       },
@@ -377,7 +377,7 @@ export const searchTransactionByNopol = async (req, res) => {
       where: {
         nopol: {
           contains: nopol,
-          mode: "insensitive",
+          
         },
       },
     });

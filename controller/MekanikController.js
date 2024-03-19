@@ -172,7 +172,7 @@ export const searchMekanik = async (req, res) => {
       where: {
         nama: {
           contains: q,
-          mode: "insensitive",
+         
         },
       },
       skip,
@@ -187,7 +187,7 @@ export const searchMekanik = async (req, res) => {
       where: {
         nama: {
           contains: q,
-          mode: "insensitive",
+         
         },
       },
     });
