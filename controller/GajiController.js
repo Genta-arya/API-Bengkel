@@ -15,7 +15,7 @@ export const getGajiTeknisi = async (req, res) => {
     });
 
     if (!firstGaji) {
-      throw new Error('No data available in gajiMekanik table');
+      return res.status(200).json({ message: 'Belum ada data saat ini', data: [] });
     }
 
     const startDate = new Date(firstGaji.tanggal); // Menggunakan tanggal pertama dari data
