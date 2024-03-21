@@ -119,7 +119,7 @@ export const createBarang = async (req, res) => {
     const currentTimeISO = currentTimeWIB.toISOString();
 
     const tomorrow = new Date(currentTimeWIB);
-    tomorrow.setDate(today.getDate() + 1);
+    tomorrow.setDate(currentTimeWIB.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
 
     if (!existingEarning) {
