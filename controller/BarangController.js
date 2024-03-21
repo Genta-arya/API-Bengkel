@@ -127,9 +127,18 @@ export const createBarang = async (req, res) => {
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(today.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
-    
-    if (!existingEarningId || (existingEarning && new Date(existingEarning.tanggal_akhir) < today)) {
-      // Buat entitas baru jika tidak ada entitas sebelumnya atau tanggal akhir sudah lewat
+
+    if (!existingEarningId) {
+      // Buat entitas baru jika tidak ada entitas sebelumnya
+      await prisma.earning.create({
+        data: {
+          uang_keluar: modalAwal,
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
+        },
+      });
+    } if (existingEarning && new Date(existingEarning.tanggal_akhir) < today) {
+      // Buat entitas baru jika tanggal akhir sudah lewat
       await prisma.earning.create({
         data: {
           uang_keluar: modalAwal,
@@ -146,6 +155,8 @@ export const createBarang = async (req, res) => {
         data: { uang_keluar: { increment: modalAwal } },
       });
     }
+    
+   
     
 
 
