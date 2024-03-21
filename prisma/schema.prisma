@@ -73,7 +73,7 @@ model PendapatanHarian {
   totalPendapatan Int      @default(0)
   modalAwal       Int      @default(0)
   tanggal         DateTime
-  tanggal_akhir   DateTime @default(now())
+  tanggal_akhir   DateTime
 }
 
 model Earning {
@@ -81,7 +81,7 @@ model Earning {
   uang_keluar   Int      @default(0)
   uang_masuk    Int      @default(0)
   tanggal       DateTime @default(now())
-  tanggal_akhir DateTime  @default(now())
+  tanggal_akhir DateTime  
 }
 
 model Barang {
@@ -120,7 +120,7 @@ model GajiMekanik {
   id            Int      @id @default(autoincrement())
   jumlah        Int
   tanggal       DateTime // Tanggal pembayaran gaji
-  tanggal_akhir DateTime @default(now())
+  tanggal_akhir DateTime 
   mekanik       Mekanik  @relation(fields: [mekanikId], references: [id])
   mekanikId     Int // Field foreign key yang merujuk ke Mekanik
 }

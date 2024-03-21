@@ -111,6 +111,7 @@ export const createBarang = async (req, res) => {
     }
     const existingEarning = await prisma.earning.findFirst();
 
+   
     const today = new Date();
 
     const currentTimeWIB = new Date(
@@ -121,6 +122,7 @@ export const createBarang = async (req, res) => {
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(today.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
+
     if (!existingEarning) {
       // Buat entitas baru jika tidak ada entitas sebelumnya
       await prisma.earning.create({
