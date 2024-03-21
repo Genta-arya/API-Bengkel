@@ -136,7 +136,7 @@ export const createBarang = async (req, res) => {
         },
       });
     } else {
-      if (new Date(existingEarning.tanggal_akhir) < today) {
+      if (new Date(existingEarning.tanggal_akhir) > today) {
         // Buat entitas baru jika tanggal akhir sudah lewat
         await prisma.earning.create({
           data: {
