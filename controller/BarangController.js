@@ -128,7 +128,7 @@ export const createBarang = async (req, res) => {
     tomorrow.setDate(today.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
 
-    if (!existingEarningId) {
+    if (!existingEarning) {
       // Buat entitas baru jika tidak ada entitas sebelumnya
       await prisma.earning.create({
         data: {
