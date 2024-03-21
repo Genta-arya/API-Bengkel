@@ -113,13 +113,17 @@ export const createBarang = async (req, res) => {
 
     const today = new Date();
 
+    // Mendapatkan waktu saat ini dalam zona waktu "Asia/Jakarta"
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
-    const currentTimeISO = currentTimeWIB.toISOString();
 
+    // Menerapkan zona waktu yang sama pada tanggal besok (tomorrow)
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
+
+    // Konversi waktu saat ini dan tanggal besok ke dalam format ISO
+    const currentTimeISO = currentTimeWIB.toISOString();
     const tomorrowISO = tomorrow.toISOString();
 
     if (!existingEarning) {
@@ -131,8 +135,7 @@ export const createBarang = async (req, res) => {
           tanggal_akhir: tomorrowISO,
         },
       });
-    } 
-    else {
+    } else {
       if (new Date(existingEarning.tanggal_akhir) < today) {
         // Buat entitas baru jika tanggal akhir sudah lewat
         await prisma.earning.create({
