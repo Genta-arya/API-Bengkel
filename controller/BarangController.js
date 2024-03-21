@@ -146,13 +146,13 @@ export const createBarang = async (req, res) => {
           },
         });
       } else {
-        // Peningkatan nilai uang_keluar pada entitas yang ada
-        // await prisma.earning.updateMany({
-        //   where: {
-        //     id: existingEarning.id, // Perbaiki penulisan id entitas
-        //   },
-        //   data: { uang_keluar: { increment: modalAwal } },
-        // });
+
+        await prisma.earning.updateMany({
+          where: {
+            id: existingEarning.id, // Perbaiki penulisan id entitas
+          },
+          data: { uang_keluar: { increment: modalAwal } },
+        });
       }
     }
     await prisma.historyBarang.create({
