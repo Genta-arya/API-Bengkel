@@ -1,46 +1,34 @@
-import { PrismaClient } from '@prisma/client';
-
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-
-
 export const getGajiTeknisi = async (req, res) => {
   try {
-    // Mengambil tanggal pertama dari data gajiMekanik yang ada di database
-    const firstGaji = await prisma.gajiMekanik.findFirst({
-      orderBy: {
-        tanggal: 'asc', // Urutkan berdasarkan tanggal secara menaik
+    const allGaji = await prisma.gajiMekanik.findMany({
+      include: {
+        mekanik: true,
       },
     });
 
-    if (!firstGaji) {
+    if (!allGaji || allGaji.length === 0) {
       return res.status(200).json({ message: 'Belum ada data saat ini', data: [] });
     }
 
-    const startDate = new Date(firstGaji.tanggal); // Menggunakan tanggal pertama dari data
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 7); // Mengatur tanggal akhir setelah 7 hari dari tanggal awal
-
-    console.log('Periode Mulai:', startDate.toISOString());
-    console.log('Periode Selesai:', endDate.toISOString());
-    const gajiTeknisi = await prisma.gajiMekanik.findMany({
-      where: {
-        AND: [
-          {
-            tanggal: {
-              gte: startDate,
-              lt: endDate,
-            },
-          },
-        ],
-      },
-      include: {
-        mekanik: true
-      }
+    const latestGaji = allGaji.reduce((latest, current) => {
+      return latest.tanggal > current.tanggal ? latest : current;
     });
 
-    res.status(200).json({ data: gajiTeknisi });
+    console.log(latestGaji)
+    const weekAgo = new Date(latestGaji.tanggal);
+    weekAgo.setDate(weekAgo.getDate() - 1); // 1 hari sebelum tanggal terakhir gaji
+
+    console.log('Periode Mulai:', weekAgo.toISOString());
+    console.log('Periode Selesai:', latestGaji.tanggal.toISOString());
+
+    // Filter data yang masih berada dalam rentang waktu yang diinginkan
+    const filteredGaji = allGaji.filter((gaji) => new Date(gaji.tanggal) >= weekAgo);
+
+    res.status(200).json({ data: filteredGaji });
   } catch (error) {
     console.error('Error retrieving gaji teknisi:', error);
     res.status(500).json({ error: 'Internal server error' });
