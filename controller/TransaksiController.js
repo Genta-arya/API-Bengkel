@@ -172,7 +172,6 @@ export const createdTransactions = async (req, res) => {
           tanggal_akhir: tomorrowISO,
         },
       });
-      
     }
 
     const existingEarning = await prisma.earning.findFirst();
@@ -184,10 +183,7 @@ export const createdTransactions = async (req, res) => {
     }
     console.log(existingEarningId);
 
-    if (
-      !existingEarningId ||
-      new Date(existingEarning.tanggal_akhir) < new Date(currentTimeWIB)
-    ) {
+    if (!existingEarningId || today > new Date(existingEarning.tanggal_akhir)) {
       console.log("data ditambahkan", currentTimeWIB);
       await prisma.earning.create({
         data: {
