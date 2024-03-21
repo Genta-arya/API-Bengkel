@@ -109,34 +109,45 @@ export const createBarang = async (req, res) => {
         data: { modalAwal: { increment: modalAwal }, tanggal: new Date() },
       });
     }
-    
-
-  
-
     const existingEarning = await prisma.earning.findFirst();
 
     let existingEarningId = null;
-
+    
     if (existingEarning) {
       existingEarningId = existingEarning.id;
     }
-
-    if (!existingEarningId) {
+    
+    const today = new Date();
+    
+    const currentTimeWIB = new Date(
+      today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
+    );
+    const currentTimeISO = currentTimeWIB.toISOString();
+    
+    const tomorrow = new Date(currentTimeWIB);
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowISO = tomorrow.toISOString();
+    
+    if (!existingEarningId || (existingEarning && new Date(existingEarning.tanggal_akhir) < today)) {
+      // Buat entitas baru jika tidak ada entitas sebelumnya atau tanggal akhir sudah lewat
       await prisma.earning.create({
         data: {
           uang_keluar: modalAwal,
-
-          tanggal: new Date(),
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
         },
       });
     } else {
+      // Peningkatan nilai uang_keluar pada entitas yang ada
       await prisma.earning.updateMany({
         where: {
           id: existingEarningId,
         },
-        data: { uang_keluar: { increment: modalAwal }, tanggal: new Date() },
+        data: { uang_keluar: { increment: modalAwal } },
       });
     }
+    
+
 
     await prisma.historyBarang.create({
       data: {
@@ -218,7 +229,6 @@ export const EditBarang = async (req, res) => {
       });
     }
 
-
     const updatedBarang = await prisma.barang.update({
       where: { id: parseInt(req.params.id) },
       data: {
@@ -298,7 +308,8 @@ export const deleteBarang = async (req, res) => {
         perubahan: `Barang dengan nama ${barangToDelete.nama} telah dihapus dari daftar.`,
       },
     });
-    const modalToDelete = barangToDelete.modal *  (barangToDelete.stok + barangToDelete.laku);
+    const modalToDelete =
+      barangToDelete.modal * (barangToDelete.stok + barangToDelete.laku);
 
     const existingPendapatan = await prisma.pendapatan.findFirst();
 

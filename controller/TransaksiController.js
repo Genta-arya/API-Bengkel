@@ -103,91 +103,101 @@ export const createdTransactions = async (req, res) => {
       });
     }
 
-    let existingPendapatanHarianId = null;
+    // handle pendapatanHarian
 
     const today = new Date();
-    const startDate = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
+
+    const currentTimeWIB = new Date(
+      today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
+    const currentTimeISO = currentTimeWIB.toISOString();
 
-    let endDate = new Date(startDate);
+    const tomorrow = new Date(currentTimeWIB);
+    tomorrow.setDate(currentTimeWIB.getDate() + 1);
+    const tomorrowISO = tomorrow.toISOString();
 
-    if (today.getMonth() !== 11) {
-      endDate.setMonth(endDate.getMonth() + 1);
-    } else {
-      endDate.setFullYear(endDate.getFullYear() + 1);
-    }
+    const currentTimeISOs = new Date(currentTimeWIB).toISOString();
 
-    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-const endOfToday = new Date(startOfToday);
-endOfToday.setDate(startOfToday.getDate() + 1);
+    const existingPendapatanHarian = await prisma.pendapatanHarian.findFirst();
 
+    const existingPendapatanHarianIds = existingPendapatanHarian?.id;
 
-    const existingPendapatanHarian = await prisma.pendapatanHarian.findFirst({
-      where: {
-        tanggal: {
-          gte: startOfToday,
-          lt: endOfToday,
-        },
-      },
-    });
-
-    if (existingPendapatanHarian) {
-      existingPendapatanHarianId = existingPendapatanHarian.id;
-    }
-
-    if (existingPendapatanHarianId) {
-      await prisma.pendapatanHarian.update({
-        where: { id: existingPendapatanHarianId },
-        data: {
-          keuntungan: { increment: keuntungan },
-          modalAwal: { increment: modalAwal },
-          totalPendapatan: { increment: totalAkhir },
-        },
+    if (existingPendapatanHarianIds) {
+      const existingEarning = await prisma.pendapatanHarian.findUnique({
+        where: { id: existingPendapatanHarianIds },
       });
-      console.log(
-        `Pendapatan harian Data diperbarui untuk periode dari ${startDate.toDateString()} hingga ${endDate.toDateString()}`
-      );
+
+      if (existingEarning && new Date(existingEarning.tanggal_akhir) > today) {
+        await prisma.pendapatanHarian.update({
+          where: { id: existingPendapatanHarianIds },
+          data: {
+            keuntungan: { increment: keuntungan },
+            modalAwal: { increment: modalAwal },
+            totalPendapatan: { increment: totalAkhir },
+          },
+        });
+        console.log(
+          `Pendapatan harian Data diperbarui untuk periode dari ${currentTimeISOs} hingga ${currentTimeISOs}`
+        );
+      } else {
+        const endOfMonth = new Date(
+          today.getFullYear(),
+          today.getMonth() + 1,
+          0
+        );
+        const endOfMonthISO = new Date(
+          endOfMonth.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
+        ).toISOString();
+
+        await prisma.pendapatanHarian.create({
+          data: {
+            keuntungan: keuntungan,
+            modalAwal: modalAwal,
+            totalPendapatan: totalAkhir,
+            tanggal: currentTimeISO,
+            tanggal_akhir: tomorrowISO,
+          },
+        });
+        console.log(
+          `Pendapatan harian Entitas baru dibuat untuk periode dari ${currentTimeISO} hingga ${endOfMonthISO}`
+        );
+      }
     } else {
-      const newPendapatanHarian = await prisma.pendapatanHarian.create({
+      await prisma.pendapatanHarian.create({
         data: {
           keuntungan: keuntungan,
           modalAwal: modalAwal,
           totalPendapatan: totalAkhir,
-          tanggal: new Date(),
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
         },
       });
-      console.log(
-        `Pendapatan harian Entitas baru dibuat untuk periode dari ${startDate.toDateString()} hingga ${endDate.toDateString()}`
-      );
+      
     }
 
-    const existingEarning = await prisma.earning.findFirst({
-      where: {
-        tanggal: {
-          gte: startDate,
-          lt: endDate,
-        },
-      },
-    });
+    const existingEarning = await prisma.earning.findFirst();
 
     let existingEarningId = null;
 
     if (existingEarning) {
       existingEarningId = existingEarning.id;
     }
+    console.log(existingEarningId);
 
-    if (!existingEarningId) {
+    if (
+      !existingEarningId ||
+      new Date(existingEarning.tanggal_akhir) < new Date(currentTimeWIB)
+    ) {
+      console.log("data ditambahkan", currentTimeWIB);
       await prisma.earning.create({
         data: {
           uang_masuk: totalAkhir,
-
-          tanggal: new Date(),
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
         },
       });
     } else {
+      console.log("data diupdated", currentTimeWIB);
       await prisma.earning.updateMany({
         where: {
           id: existingEarningId,
@@ -218,42 +228,28 @@ endOfToday.setDate(startOfToday.getDate() + 1);
         transaksiBarangs: true,
       },
     });
-    let startDates;
 
-    startDates = new Date();
+    // HandleGaji
+
+    const startDates = new Date(currentTimeWIB);
     const endDates = new Date(startDates);
-    endDates.setDate(startDates.getDate() + 1); // Menambahkan 7 hari dari tanggal pertama
+    endDates.setDate(startDates.getDate() + 7); // Tambahkan 7 hari untuk mendapatkan akhir seminggu dari hari ini
+    const endDatesISO = endDates.toISOString();
+    const startDateISO = startDates.toISOString();
 
     const existingGajiMekanik = await prisma.gajiMekanik.findFirst({
       where: {
-        AND: [
-          {
-            tanggal: {
-              gte: startDate,
-              lt: endDate,
-            },
-          },
-          {
-            mekanikId: mekanikIds,
-          },
-        ],
+        mekanikId: mekanikIds,
       },
     });
 
-    if (existingGajiMekanik) {
+    if (
+      existingGajiMekanik &&
+      new Date(existingGajiMekanik.tanggal_akhir) < endDates
+    ) {
       await prisma.gajiMekanik.updateMany({
         where: {
-          AND: [
-            {
-              tanggal: {
-                gte: startDates,
-                lt: endDates,
-              },
-            },
-            {
-              mekanikId: mekanikIds,
-            },
-          ],
+          mekanikId: mekanikIds,
         },
         data: {
           jumlah: {
@@ -268,7 +264,8 @@ endOfToday.setDate(startOfToday.getDate() + 1);
       await prisma.gajiMekanik.create({
         data: {
           jumlah: parseInt(serviceCost),
-          tanggal: endDates,
+          tanggal: startDateISO,
+          tanggal_akhir: endDatesISO,
           mekanikId: mekanikIds,
         },
       });
@@ -349,8 +346,8 @@ export const getTransaction = async (req, res) => {
 export const getAllTransaction = async (req, res) => {
   try {
     const today = new Date();
-    const startDates = new Date(today.getFullYear(), today.getMonth(), 1); // Tanggal awal bulan ini
-    const endDates = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Tanggal akhir bulan ini
+    const startDates = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endDates = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
     const pendapatan = await prisma.pendapatanHarian.findMany({
       where: {
@@ -383,7 +380,7 @@ export const getAllTransaction = async (req, res) => {
     });
 
     if (transaksi.length === 0) {
-      return res.status(404).json({message:"Transaksi Bulan ini tidak ada"})
+      return res.status(404).json({ message: "Transaksi Bulan ini tidak ada" });
     }
 
     const totalService = transaksi.reduce(
@@ -575,22 +572,27 @@ export const getChartDataHarian = async (req, res) => {
     });
 
     if (pendapatanHarianData.length === 0) {
-      return res.status(404).json({ message: "Data pendapatan harian tidak ditemukan" });
+      return res
+        .status(404)
+        .json({ message: "Data pendapatan harian tidak ditemukan" });
     }
 
-    const today = pendapatanHarianData[0].tanggal;
+    // const today = pendapatanHarianData[0].tanggal;
+
+    const today = new Date(); // Tanggal hari ini
     const year = today.getFullYear();
-    const month = today.getMonth(); 
-    // s
+    const month = today.getMonth();
 
     switch (mode) {
       case "bulanan":
-        const startDates = new Date(year, month, 1);
-        const endDates = new Date(year, month + 1, 0);
-
+        const today = new Date(); // Tanggal hari ini
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        const startDates = new Date(year, month, 1); // Tanggal awal bulan
+        const endDates = new Date(year, month + 1, 0); // Tanggal akhir bulan
         data = await prisma.pendapatanHarian.findMany({
           where: {
-            tanggal: {
+            tanggal_akhir: {
               gte: startDates,
               lte: endDates,
             },
@@ -606,7 +608,7 @@ export const getChartDataHarian = async (req, res) => {
 
     const startOfMonth = new Date(year, month, 1);
     const endOfMonth = new Date(year, month + 1, 0);
-    
+
     modalAwal = await prisma.pendapatan.findMany({
       where: {
         tanggal: {
@@ -645,41 +647,25 @@ export const getChartDataHarian = async (req, res) => {
   }
 };
 
-
 export const getMoneyTracking = async (req, res) => {
+  // Mendapatkan tanggal hari ini
   const today = new Date();
 
-  // Membuat tanggal mulai hari ini (00:00:00)
-  const startDates = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate()
-  );
-
-  // Membuat tanggal akhir hari ini (sehari setelah mulai hari ini)
-  const endDates = new Date(startDates);
-  endDates.setDate(startDates.getDate() + 1);
-
   try {
-    // Mengambil data earning berdasarkan rentang waktu dari mulai hari ini hingga akhir hari ini
+    // Mengambil data earning sebelum tanggal_akhir
     const data = await prisma.earning.findMany({
       where: {
-        tanggal: {
-          gte: startDates,
-          lt: endDates,
+        tanggal_akhir: {
+          gt: today, // Lebih besar dari (setelah) hari ini
         },
       },
     });
 
-    // Mendapatkan nama hari dari tanggal mulai
-    const hariIni = startDates.toLocaleDateString("id-ID", { weekday: "long" });
-
-    res.status(200).json({ data: data, day: hariIni });
+    res.status(200).json({ data: data });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 // const today = pendapatanHarianData[0].tanggal;
 // const startDates = new Date(
