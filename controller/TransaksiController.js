@@ -186,7 +186,7 @@ export const createdTransactions = async (req, res) => {
 
     if (
       !existingEarningId ||
-      new Date(existingEarning.tanggal_akhir) > new Date(currentTimeWIB)
+      new Date(existingEarning.tanggal_akhir) <= new Date(currentTimeWIB)
     ) {
       console.log("data ditambahkan", currentTimeWIB);
       await prisma.earning.create({
