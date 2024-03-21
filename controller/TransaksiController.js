@@ -580,7 +580,7 @@ export const getChartDataHarian = async (req, res) => {
 
     const today = pendapatanHarianData[0].tanggal;
     const year = today.getFullYear();
-    const month = today.getMonth(); 
+    const month = today.getMonth(); // Bulan saat ini (0-11)
 
     switch (mode) {
       case "bulanan":
