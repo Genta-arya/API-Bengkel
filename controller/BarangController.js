@@ -111,23 +111,16 @@ export const createBarang = async (req, res) => {
     }
     const existingEarning = await prisma.earning.findFirst();
 
-    let existingEarningId = null;
-    
-    if (existingEarning) {
-      existingEarningId = existingEarning.id;
-    }
-    
     const today = new Date();
-    
+
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
     const currentTimeISO = currentTimeWIB.toISOString();
-    
+
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(today.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
-
     if (!existingEarning) {
       // Buat entitas baru jika tidak ada entitas sebelumnya
       await prisma.earning.create({
@@ -137,28 +130,26 @@ export const createBarang = async (req, res) => {
           tanggal_akhir: tomorrowISO,
         },
       });
-    } if (existingEarning && new Date(existingEarning.tanggal_akhir) < today) {
-      // Buat entitas baru jika tanggal akhir sudah lewat
-      await prisma.earning.create({
-        data: {
-          uang_keluar: modalAwal,
-          tanggal: currentTimeISO,
-          tanggal_akhir: tomorrowISO,
-        },
-      });
     } else {
-      // Peningkatan nilai uang_keluar pada entitas yang ada
-      await prisma.earning.updateMany({
-        where: {
-          id: existingEarningId,
-        },
-        data: { uang_keluar: { increment: modalAwal } },
-      });
+      if (new Date(existingEarning.tanggal_akhir) < today) {
+        // Buat entitas baru jika tanggal akhir sudah lewat
+        await prisma.earning.create({
+          data: {
+            uang_keluar: modalAwal,
+            tanggal: currentTimeISO,
+            tanggal_akhir: tomorrowISO,
+          },
+        });
+      } else {
+        // Peningkatan nilai uang_keluar pada entitas yang ada
+        await prisma.earning.updateMany({
+          where: {
+            id: existingEarning.id, // Perbaiki penulisan id entitas
+          },
+          data: { uang_keluar: { increment: modalAwal } },
+        });
+      }
     }
-    
-   
-    
-
 
     await prisma.historyBarang.create({
       data: {
