@@ -182,8 +182,12 @@ export const createdTransactions = async (req, res) => {
       existingEarningId = existingEarning.id;
     }
     console.log(existingEarningId);
+    const latestEarning = await prisma.earning.findFirst({
+      orderBy: { tanggal_akhir: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+    });
+    console.log(latestEarning);
 
-    if (!existingEarningId || today > new Date(existingEarning.tanggal_akhir)) {
+    if (!existingEarningId || today > new Date(latestEarning.tanggal_akhir)) {
       console.log("data ditambahkan", currentTimeWIB);
       await prisma.earning.create({
         data: {
@@ -196,7 +200,7 @@ export const createdTransactions = async (req, res) => {
       console.log("data diupdated", currentTimeWIB);
       await prisma.earning.updateMany({
         where: {
-          id: existingEarningId,
+          id: latestEarning.id,
         },
         data: { uang_masuk: { increment: totalAkhir } },
       });
@@ -226,37 +230,62 @@ export const createdTransactions = async (req, res) => {
     });
 
     // HandleGaji
-
+    const todays = new Date();
     const startDates = new Date(currentTimeWIB);
     const endDates = new Date(startDates);
     endDates.setDate(startDates.getDate() + 7); // Tambahkan 7 hari untuk mendapatkan akhir seminggu dari hari ini
     const endDatesISO = endDates.toISOString();
     const startDateISO = startDates.toISOString();
 
-    const existingGajiMekanik = await prisma.gajiMekanik.findFirst({
+    // Mendapatkan tanggal akhir terbaru berdasarkan mekanikId
+    const latestEndDate = await prisma.gajiMekanik.findFirst({
       where: {
         mekanikId: mekanikIds,
       },
+      select: {
+        tanggal_akhir: true,
+      },
+      orderBy: {
+        tanggal_akhir: "desc", // Mengurutkan berdasarkan tanggal_akhir secara descending
+      },
     });
 
-    if (
-      existingGajiMekanik &&
-      new Date(existingGajiMekanik.tanggal_akhir) < endDates
-    ) {
-      await prisma.gajiMekanik.updateMany({
-        where: {
-          mekanikId: mekanikIds,
-        },
-        data: {
-          jumlah: {
-            increment: parseInt(serviceCost),
+    if (latestEndDate) {
+      // Memeriksa apakah hari ini sudah melewati tanggal akhir gaji
+      if (todays > new Date(latestEndDate.tanggal_akhir)) {
+        // Buat entitas baru karena tanggal hari ini sudah melewati tanggal akhir
+        await prisma.gajiMekanik.create({
+          data: {
+            jumlah: parseInt(serviceCost),
+            tanggal: startDateISO,
+            tanggal_akhir: endDatesISO,
+            mekanikId: mekanikIds,
           },
-        },
-      });
-      console.log(
-        `Data Gaji diperbarui untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`
-      );
+        });
+        console.log(
+          `Entitas Gaji baru dibuat untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`
+        );
+      } else {
+        // Lakukan peningkatan nilai gaji jika tanggal hari ini masih berada dalam periode yang sama
+        await prisma.gajiMekanik.updateMany({
+          where: {
+            mekanikId: mekanikIds,
+            tanggal_akhir: {
+              gt: todays, // Menggunakan operator greater than untuk tanggal yang belum kadaluarsa
+            },
+          },
+          data: {
+            jumlah: {
+              increment: parseInt(serviceCost),
+            },
+          },
+        });
+        console.log(
+          `Data Gaji diperbarui untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`
+        );
+      }
     } else {
+      // Buat entitas baru karena tidak ada gaji mekanik sebelumnya
       await prisma.gajiMekanik.create({
         data: {
           jumlah: parseInt(serviceCost),
