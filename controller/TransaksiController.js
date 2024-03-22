@@ -681,17 +681,19 @@ export const getMoneyTracking = async (req, res) => {
     const data = await prisma.earning.findMany({
       where: {
         tanggal_akhir: {
-          gt: today, // Lebih besar dari (setelah) hari ini
+          gt: today.toISOString(), // Lebih besar dari (setelah) hari ini
         },
       },
     });
 
     res.status(200).json({ data: data });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    await prisma.$disconnect();
   }
 };
-
 // const today = pendapatanHarianData[0].tanggal;
 // const startDates = new Date(
 //   today.getFullYear(),
