@@ -672,21 +672,39 @@ export const getChartDataHarian = async (req, res) => {
   }
 };
 
+
 export const getMoneyTracking = async (req, res) => {
-  // Mendapatkan tanggal hari ini
+  // Mendapatkan tanggal hari ini tanpa jam
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   try {
-    // Mengambil data earning sebelum tanggal_akhir
+    // Mengambil data earning dengan tanggal_akhir lebih besar dari hari ini (tanpa jam)
     const data = await prisma.earning.findMany({
       where: {
         tanggal_akhir: {
-          gt: today.toISOString(), // Lebih besar dari (setelah) hari ini
+          gt: today,
         },
       },
     });
 
-    res.status(200).json({ data: data });
+   
+    
+    let tanggalAkhirth = null;
+    if (data.length > 0) {
+
+      tanggalAkhirth = data[0].tanggal_akhir;
+    }
+    const formattedDate =tanggalAkhirth.toLocaleString('id-ID', {
+      day: 'numeric', // Menampilkan hari dalam angka
+      month: 'long', // Menampilkan nama bulan lengkap
+      year: 'numeric', // Menampilkan tahun dalam angka
+      hour: '2-digit', // Menampilkan jam dalam format dua digit (contoh: 04)
+      minute: '2-digit', // Menampilkan menit dalam format dua digit (contoh: 52)
+      timeZoneName: 'short' // Menampilkan nama zona waktu pendek (contoh: WIB)
+    });
+
+    res.status(200).json({ data: data, tanggal: formattedDate });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
