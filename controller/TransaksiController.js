@@ -686,6 +686,8 @@ export const getMoneyTracking = async (req, res) => {
       },
     });
 
+
+
     let tanggalAkhirth = null;
     if (data.length > 0) {
       tanggalAkhirth = data[0].tanggal_akhir;
@@ -719,7 +721,7 @@ export const getMoneyTracking = async (req, res) => {
 
       res.status(200).json({ data: data, tanggal: formattedDate });
     } else {
-      res.status(404).json({ message: "Data tidak ditemukan" });
+      res.status(200).json({ message: "Data tidak ditemukan" });
     }
   } catch (error) {
     console.error(error);
