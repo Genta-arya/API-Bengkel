@@ -187,7 +187,7 @@ export const createdTransactions = async (req, res) => {
     });
     console.log(latestEarning);
 
-    if (!existingEarningId || today > new Date(latestEarning.tanggal_akhir)) {
+    if (!existingEarningId || today === new Date(latestEarning.tanggal_akhir)) {
       console.log("data ditambahkan", currentTimeWIB);
       await prisma.earning.create({
         data: {
@@ -719,6 +719,8 @@ export const getMoneyTracking = async (req, res) => {
         }
       )}`;
 
+      console.log(today)
+
       res.status(200).json({ data: data, tanggal: formattedDate });
     } else {
       res.status(200).json({ message: "Data tidak ditemukan" });
@@ -730,6 +732,9 @@ export const getMoneyTracking = async (req, res) => {
     await prisma.$disconnect();
   }
 };
+
+
+
 // const today = pendapatanHarianData[0].tanggal;
 // const startDates = new Date(
 //   today.getFullYear(),
