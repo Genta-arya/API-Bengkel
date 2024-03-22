@@ -672,14 +672,12 @@ export const getChartDataHarian = async (req, res) => {
   }
 };
 
-
 export const getMoneyTracking = async (req, res) => {
-  // Mendapatkan tanggal hari ini tanpa jam
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   try {
-    // Mengambil data earning dengan tanggal_akhir lebih besar dari hari ini (tanpa jam)
+    // Mendapatkan data earning dengan tanggal_akhir lebih besar dari hari ini (tanpa jam)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const data = await prisma.earning.findMany({
       where: {
         tanggal_akhir: {
@@ -688,23 +686,41 @@ export const getMoneyTracking = async (req, res) => {
       },
     });
 
-   
-    
     let tanggalAkhirth = null;
     if (data.length > 0) {
-
       tanggalAkhirth = data[0].tanggal_akhir;
-    }
-    const formattedDate =tanggalAkhirth.toLocaleString('id-ID', {
-      day: 'numeric', // Menampilkan hari dalam angka
-      month: 'long', // Menampilkan nama bulan lengkap
-      year: 'numeric', // Menampilkan tahun dalam angka
-      hour: '2-digit', // Menampilkan jam dalam format dua digit (contoh: 04)
-      minute: '2-digit', // Menampilkan menit dalam format dua digit (contoh: 52)
-      timeZoneName: 'short' // Menampilkan nama zona waktu pendek (contoh: WIB)
-    });
 
-    res.status(200).json({ data: data, tanggal: formattedDate });
+      // Array nama hari dalam Bahasa Indonesia
+      const namaHari = [
+        "Minggu",
+        "Senin",
+        "Selasa",
+        "Rabu",
+        "Kamis",
+        "Jumat",
+        "Sabtu",
+      ];
+
+      // Mendapatkan nama hari dalam Bahasa Indonesia
+      const hariIndex = tanggalAkhirth.getDay(); // Mengambil indeks hari dari tanggal
+      const namaHariIndo = namaHari[hariIndex];
+
+      // Mendapatkan string dalam format yang diinginkan
+      const formattedDate = `${namaHariIndo}, ${tanggalAkhirth.getDate()} ${tanggalAkhirth.toLocaleString(
+        "id-ID",
+        {
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZoneName: "short",
+        }
+      )}`;
+
+      res.status(200).json({ data: data, tanggal: formattedDate });
+    } else {
+      res.status(404).json({ message: "Data tidak ditemukan" });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
