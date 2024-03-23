@@ -258,7 +258,7 @@ export const EditBarang = async (req, res) => {
       // Buat entitas baru jika tidak ada entitas sebelumnya
       await prisma.earning.create({
         data: {
-          uang_keluar: modalDifference,
+          uang_keluar: modal * stok ,
           tanggal: currentTimeISO,
           tanggal_akhir: tomorrowISO,
         },
@@ -271,7 +271,7 @@ export const EditBarang = async (req, res) => {
         // Buat entitas baru jika tanggal akhir sudah lewat
         await prisma.earning.create({
           data: {
-            uang_keluar: modalDifference,
+            uang_keluar: modal * stok ,
             tanggal: currentTimeISO,
             tanggal_akhir: tomorrowISO,
           },
@@ -281,7 +281,7 @@ export const EditBarang = async (req, res) => {
           where: {
             id: latestEarning.id, // Perbaiki penulisan id entitas
           },
-          data: { uang_keluar: { increment: modalAwal } },
+          data: { uang_keluar: { increment: modal * stok } },
         });
       }
     }
