@@ -118,7 +118,7 @@ export const createdTransactions = async (req, res) => {
     // Dapatkan waktu saat ini dalam format ISO
     const currentTimeISOs = new Date(currentTimeWIB).toISOString();
 
-    today.setHours(0, 0, 0, 0);
+
     const day = today.getDate();
     const month = today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
     const year = today.getFullYear();
@@ -142,7 +142,7 @@ export const createdTransactions = async (req, res) => {
       console.log("HARI INI ", today.getDay());
 
       // Bandingkan tahun, bulan, dan tanggal dari tanggal akhir dengan tanggal saat ini
-      if (earningDate.getTime() === today.getTime()) {
+      if (earningDate.getTime() <= today.getTime()) {
         // Lakukan update jika tanggal akhir lebih besar dari hari ini
         const endOfMonth = new Date(
           today.getFullYear(),
@@ -749,7 +749,7 @@ export const getMoneyTracking = async (req, res) => {
       console.log(latestEarningDate.toLocaleDateString());
       console.log(today.toLocaleDateString());
 
-      if (latestEarningDate.getTime() < today.getTime()) {
+      if (latestEarningDate.getTime() <= today.getTime()) {
         // Jika tanggal sama dengan hari ini, kosongkan data
         data.length = 0;
       }
