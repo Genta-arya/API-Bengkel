@@ -215,11 +215,13 @@ export const EditBarang = async (req, res) => {
     const previousBarang = await prisma.barang.findUnique({
       where: { id: parseInt(req.params.id) },
     });
-
+    const stokDifference =(parsedStok - previousBarang.stok ) * modal;
+    
     const modalDifference =
       parsedModal * parsedStok - previousBarang.modal * previousBarang.stok;
 
     const existingPendapatan = await prisma.pendapatan.findFirst();
+
 
     let existingPendapatanId = null;
 
@@ -246,7 +248,7 @@ export const EditBarang = async (req, res) => {
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
 
-    // Menerapkan zona waktu yang sama pada tanggal besok (tomorrow)
+  
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
 
@@ -258,7 +260,7 @@ export const EditBarang = async (req, res) => {
       // Buat entitas baru jika tidak ada entitas sebelumnya
       await prisma.earning.create({
         data: {
-          uang_keluar: modal * stok ,
+          uang_keluar: stokDifference,
           tanggal: currentTimeISO,
           tanggal_akhir: tomorrowISO,
         },
@@ -271,7 +273,7 @@ export const EditBarang = async (req, res) => {
         // Buat entitas baru jika tanggal akhir sudah lewat
         await prisma.earning.create({
           data: {
-            uang_keluar: modal * stok ,
+            uang_keluar: stokDifference ,
             tanggal: currentTimeISO,
             tanggal_akhir: tomorrowISO,
           },
@@ -281,7 +283,7 @@ export const EditBarang = async (req, res) => {
           where: {
             id: latestEarning.id, // Perbaiki penulisan id entitas
           },
-          data: { uang_keluar: { increment: modal * stok } },
+          data: { uang_keluar: { increment: stokDifference} },
         });
       }
     }
