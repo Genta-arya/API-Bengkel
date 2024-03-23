@@ -116,7 +116,7 @@ export const createdTransactions = async (req, res) => {
     const tomorrowISO = tomorrow.toISOString();
 
     // Dapatkan waktu saat ini dalam format ISO
-  
+
     const day = today.getDate();
     const month = today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
     const year = today.getFullYear();
@@ -150,7 +150,7 @@ export const createdTransactions = async (req, res) => {
           totalPendapatan: { increment: totalAkhir },
         },
       });
-      console.log("Pendapatan Harian Di Perbarui")
+      console.log("Pendapatan Harian Di Perbarui");
 
       // const earningDate = new Date(existingEarnings.tanggal_akhir);
       // earningDate.getDate();
@@ -199,7 +199,7 @@ export const createdTransactions = async (req, res) => {
       //   );
       // }
     } else {
-      console.log("Pendapatan Harian Di Buat")
+      console.log("Pendapatan Harian Di Buat");
       await prisma.pendapatanHarian.create({
         data: {
           keuntungan: keuntungan,
@@ -220,7 +220,7 @@ export const createdTransactions = async (req, res) => {
       },
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
     });
-    console.log("Data Earning",latestEarning);
+    console.log("Data Earning", latestEarning);
 
     // const hari = new Date();
 
@@ -240,7 +240,7 @@ export const createdTransactions = async (req, res) => {
     // );
 
     if (!latestEarning) {
-      console.log("Pendapatan Earning Di buat")
+      console.log("Pendapatan Earning Di buat");
       await prisma.earning.create({
         data: {
           uang_masuk: totalAkhir,
@@ -275,7 +275,7 @@ export const createdTransactions = async (req, res) => {
       //     },
       //   });
     } else {
-      console.log("Pendapatan Earning Di perbarui")
+      console.log("Pendapatan Earning Di perbarui");
       await prisma.earning.updateMany({
         where: {
           id: latestEarning.id,
@@ -485,6 +485,27 @@ export const getAllTransaction = async (req, res) => {
         keuntungan: true,
       },
     });
+    const calculateTotal = (data) => {
+      let totalPendapatan = 0;
+      let keuntungan = 0;
+
+      // Iterasi melalui setiap objek dalam array
+      data.forEach((item) => {
+        totalPendapatan += item.totalPendapatan;
+        keuntungan += item.keuntungan;
+      });
+
+      return [totalPendapatan, keuntungan];
+    };
+
+    // Menghitung total pendapatan dan keuntungan dari data
+    const totals = calculateTotal(pendapatan);
+
+    const arrayPendapatan = [
+      { totalPendapatan: totals[0], keuntungan: totals[1] },
+    ];
+
+    console.log(arrayPendapatan);
 
     const transaksi = await prisma.transaksi.findMany({
       include: {
@@ -524,6 +545,7 @@ export const getAllTransaction = async (req, res) => {
       (acc, curr) => acc + curr.totalPendapatan,
       0
     );
+
     const pendapatanKotor = totalService + total;
 
     const formatDate = (date) => {
@@ -543,7 +565,7 @@ export const getAllTransaction = async (req, res) => {
 
     res.status(200).json({
       data: transaksi,
-      pendapatan,
+      pendapatan: arrayPendapatan,
       periode,
       pendapatanKotor,
     });
@@ -804,15 +826,15 @@ export const getMoneyTracking = async (req, res) => {
     let formattedDate = null;
     if (data.length > 0) {
       const latestEarningDate = data[0].tanggal_akhir;
-      const thisday = data[0].tanggal
+      const thisday = data[0].tanggal;
 
-      console.log(latestEarningDate.toLocaleDateString());
-      console.log(today.toLocaleDateString());
+      // console.log(latestEarningDate.toLocaleDateString());
+      // console.log(today.toLocaleDateString());
 
-      if (latestEarningDate.getTime() < today.getTime()) {
-        // Jika tanggal sama dengan hari ini, kosongkan data
-        data.length = 0;
-      }
+      // if (latestEarningDate.getTime() < today.getTime()) {
+      //   // Jika tanggal sama dengan hari ini, kosongkan data
+      //   data.length = 0;
+      // }
 
       // Array nama hari dalam Bahasa Indonesia
       const namaHari = [
@@ -837,9 +859,10 @@ export const getMoneyTracking = async (req, res) => {
           year: "numeric",
         }
       )}`;
+      res.status(200).json({ data: data, tanggal: formattedDate });
+    } else {
+      res.status(200).json({ data: [], message: "Belum ada transaksi" });
     }
-
-    res.status(200).json({ data: data, tanggal: formattedDate });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
