@@ -761,34 +761,37 @@ export const getMoneyTracking = async (req, res) => {
       if (todayFormattedDate.getDay() > latestEarningFormattedDate.getDay()) {
         // Jika tanggal sama dengan hari ini, kosongkan data
         data.length = 0;
+        res
+          .status(200)
+          .json({ data: [], message: "belum ada transaksi hari ini" });
+      } else {
+        // Array nama hari dalam Bahasa Indonesia
+        const namaHari = [
+          "Minggu",
+          "Senin",
+          "Selasa",
+          "Rabu",
+          "Kamis",
+          "Jumat",
+          "Sabtu",
+        ];
+
+        // Mendapatkan nama hari dalam Bahasa Indonesia
+        const hariIndex = latestEarningDate.getDay(); // Mengambil indeks hari dari tanggal
+        const namaHariIndo = namaHari[hariIndex];
+
+        // Mendapatkan string dalam format yang diinginkan
+        formattedDate = `${namaHariIndo}, ${latestEarningDate.getDate()} ${latestEarningDate.toLocaleString(
+          "id-ID",
+          {
+            month: "long",
+            year: "numeric",
+          }
+        )}`;
       }
 
-      // Array nama hari dalam Bahasa Indonesia
-      const namaHari = [
-        "Minggu",
-        "Senin",
-        "Selasa",
-        "Rabu",
-        "Kamis",
-        "Jumat",
-        "Sabtu",
-      ];
-
-      // Mendapatkan nama hari dalam Bahasa Indonesia
-      const hariIndex = latestEarningDate.getDay(); // Mengambil indeks hari dari tanggal
-      const namaHariIndo = namaHari[hariIndex];
-
-      // Mendapatkan string dalam format yang diinginkan
-      formattedDate = `${namaHariIndo}, ${latestEarningDate.getDate()} ${latestEarningDate.toLocaleString(
-        "id-ID",
-        {
-          month: "long",
-          year: "numeric",
-        }
-      )}`;
+      res.status(200).json({ data: data, tanggal: formattedDate });
     }
-
-    res.status(200).json({ data: data, tanggal: formattedDate });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
