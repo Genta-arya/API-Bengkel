@@ -111,12 +111,10 @@ export const createBarang = async (req, res) => {
     }
 
     const today = new Date();
-
     // Mendapatkan waktu saat ini dalam zona waktu "Asia/Jakarta"
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
-
     // Menerapkan zona waktu yang sama pada tanggal besok (tomorrow)
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
@@ -124,22 +122,32 @@ export const createBarang = async (req, res) => {
     // Konversi waktu saat ini dan tanggal besok ke dalam format ISO
     const currentTimeISO = currentTimeWIB.toISOString();
     const tomorrowISO = tomorrow.toISOString();
+    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999)
 
     const latestEarning = await prisma.earning.findFirst({
+      where: {
+        tanggal: {
+          gte: today.toISOString(), // Rentang hari ini mulai dari 00:00:00
+          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+        },
+      },
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
     });
 
-    if (latestEarning) {
-      const hari = new Date();
+    if (!latestEarning) {
+      // const hari = new Date();
 
-      const latestEarningDate = new Date(latestEarning.tanggal_akhir);
-      const latestEarningFormattedDate = new Date(
-        latestEarningDate.getFullYear(),
-        latestEarningDate.getMonth(),
-        latestEarningDate.getDate()
-      );
-      if (latestEarningDate.getTime() <= hari.getTime()) {
-        console.log("data ditambahkan", currentTimeWIB);
+      // const latestEarningDate = new Date(latestEarning.tanggal_akhir);
+      // const latestEarningFormattedDate = new Date(
+      //   latestEarningDate.getFullYear(),
+      //   latestEarningDate.getMonth(),
+      //   latestEarningDate.getDate()
+      // );
+      // if (latestEarningDate.getTime() <= hari.getTime()) {
+      //   console.log("data ditambahkan", currentTimeWIB);
+      console.log("Earning dibuat")
         await prisma.earning.create({
           data: {
             uang_keluar: modalAwal,
@@ -147,22 +155,29 @@ export const createBarang = async (req, res) => {
             tanggal_akhir: tomorrowISO,
           },
         });
-      } else {
-        console.log("data diupdated", currentTimeWIB);
-        await prisma.earning.updateMany({
-          where: {
-            id: latestEarning.id,
-          },
-          data: { uang_keluar: { increment: modalAwal } },
-        });
-      }
+      // } else {
+      //   console.log("data diupdated", currentTimeWIB);
+      //   await prisma.earning.updateMany({
+      //     where: {
+      //       id: latestEarning.id,
+      //     },
+      //     data: { uang_keluar: { increment: modalAwal } },
+      //   });
+      // }
     } else {
-      await prisma.earning.create({
-        data: {
-          uang_keluar: modalAwal,
-          tanggal: currentTimeISO,
-          tanggal_akhir: tomorrowISO,
+      // await prisma.earning.create({
+      //   data: {
+      //     uang_keluar: modalAwal,
+      //     tanggal: currentTimeISO,
+      //     tanggal_akhir: tomorrowISO,
+      //   },
+      // });
+      console.log("Earning diupdate")
+      await prisma.earning.updateMany({
+        where: {
+          id: latestEarning.id,
         },
+        data: { uang_keluar: { increment: modalAwal } },
       });
     }
 
@@ -249,59 +264,76 @@ export const EditBarang = async (req, res) => {
     }
 
     const today = new Date();
-
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
     const currentTimeISO = currentTimeWIB.toISOString();
-
-    // Menghitung tanggal besok
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
-
+    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999); // Set jam ke 23:59:59
     const latestEarning = await prisma.earning.findFirst({
+      where: {
+        tanggal: {
+          gte: today.toISOString(), // Rentang hari ini mulai dari 00:00:00
+          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+        },
+      },
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
     });
     console.log(latestEarning);
 
-    const hari = new Date();
+    // const hari = new Date();
 
     // Mengonversi latestEarning.tanggal_akhir ke format tanggal bulan tahun (tanpa jam)
-    const latestEarningDate = new Date(latestEarning.tanggal_akhir);
-    const latestEarningFormattedDate = new Date(
-      latestEarningDate.getFullYear(),
-      latestEarningDate.getMonth(),
-      latestEarningDate.getDate()
-    );
+    // const latestEarningDate = new Date(latestEarning.tanggal_akhir);
+    // const latestEarningFormattedDate = new Date(
+    //   latestEarningDate.getFullYear(),
+    //   latestEarningDate.getMonth(),
+    //   latestEarningDate.getDate()
+    // );
 
-    if (latestEarning) {
-      if (latestEarningDate.getTime() <= hari.getTime()) {
-        console.log("data ditambahkan", currentTimeWIB);
-        await prisma.earning.create({
-          data: {
-            uang_keluar: parseDfirenet < 0 ? 0 : parseDfirenet,
-            tanggal: currentTimeISO,
-            tanggal_akhir: tomorrowISO,
-          },
-        });
-      } else {
-        console.log("data diupdated", currentTimeWIB);
-        await prisma.earning.updateMany({
-          where: {
-            id: latestEarning.id,
-          },
-          data: {
-            uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
-          },
-        });
-      }
-    } else {
+    if (!latestEarning) {
+      // if (latestEarningDate.getTime() <= hari.getTime()) {
+      //   console.log("data ditambahkan", currentTimeWIB);
+         console.log("Created Earning");
       await prisma.earning.create({
         data: {
-          uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
+          uang_keluar: parseDfirenet < 0 ? 0 : parseDfirenet,
           tanggal: currentTimeISO,
           tanggal_akhir: tomorrowISO,
+        },
+      });
+      // } else {
+      //   console.log("data diupdated", currentTimeWIB);
+      // await prisma.earning.updateMany({
+      //   where: {
+      //     id: latestEarning.id,
+      //   },
+      //   data: {
+      //     uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
+      //   },
+      // });
+      // }
+    } else {
+      // await prisma.earning.create({
+      //   data: {
+      //     uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
+      //     tanggal: currentTimeISO,
+      //     tanggal_akhir: tomorrowISO,
+      //   },
+      // });
+      console.log("Updated Earning");
+
+      await prisma.earning.updateMany({
+
+        where: {
+          id: latestEarning.id,
+        },
+        data: {
+          uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
         },
       });
     }
