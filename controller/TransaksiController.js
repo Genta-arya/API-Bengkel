@@ -144,7 +144,7 @@ export const createdTransactions = async (req, res) => {
       earningDate.getFullYear();
 
       // Bandingkan tahun, bulan, dan tanggal dari tanggal akhir dengan tanggal saat ini
-      if (earningDate > today) {
+      if (earningDate < today) {
         // Lakukan update jika tanggal akhir lebih besar dari hari ini
         await prisma.pendapatanHarian.update({
           where: { id: existingEarnings.id },
