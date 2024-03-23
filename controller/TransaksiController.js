@@ -859,7 +859,8 @@ export const getMoneyTracking = async (req, res) => {
           year: "numeric",
         }
       )}`;
-      const day = today.toISOString()
+      const hari = new Date()
+      const day = hari.toISOString()
       res.status(200).json({ data: data, tanggal: formattedDate ,today:day });
     } else {
       res.status(200).json({ data: [], message: "Belum ada transaksi" , today:today });
