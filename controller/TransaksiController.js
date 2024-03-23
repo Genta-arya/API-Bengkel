@@ -215,7 +215,7 @@ export const createdTransactions = async (req, res) => {
     );
 
     if (latestEarning) {
-      if ( latestEarningDate.getTime() <= hari.getTime()  ) {
+      if ( latestEarningDate.getTime() === hari.getTime()  ) {
         console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
           data: {
