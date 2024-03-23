@@ -861,7 +861,7 @@ export const getMoneyTracking = async (req, res) => {
       )}`;
       res.status(200).json({ data: data, tanggal: formattedDate });
     } else {
-      res.status(200).json({ data: [], message: "Belum ada transaksi" });
+      res.status(200).json({ data: [], message: "Belum ada transaksi" , today:today });
     }
   } catch (error) {
     console.error(error);
