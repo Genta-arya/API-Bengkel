@@ -142,7 +142,7 @@ export const createdTransactions = async (req, res) => {
       console.log("HARI INI ", today.getDay());
 
       // Bandingkan tahun, bulan, dan tanggal dari tanggal akhir dengan tanggal saat ini
-      if (earningDate.getDay() === today.getDay()) {
+      if (earningDate.getTime() === today.getTime()) {
         // Lakukan update jika tanggal akhir lebih besar dari hari ini
         const endOfMonth = new Date(
           today.getFullYear(),
