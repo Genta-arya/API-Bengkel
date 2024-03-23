@@ -281,7 +281,7 @@ export const EditBarang = async (req, res) => {
         console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
           data: {
-            uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
+            uang_keluar: parseDfirenet < 0 ? 0 : parseDfirenet ,
             tanggal: currentTimeISO,
             tanggal_akhir: tomorrowISO,
           },
@@ -335,6 +335,7 @@ export const EditBarang = async (req, res) => {
       status: 200,
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ error: error.message });
   }
 };
@@ -437,6 +438,7 @@ export const getBarang = async (req, res) => {
       totalPages: totalPages,
     });
   } catch (error) {
+
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
