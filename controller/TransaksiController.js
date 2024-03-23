@@ -830,7 +830,7 @@ export const getMoneyTracking = async (req, res) => {
       const namaHariIndo = namaHari[hariIndex];
 
       // Mendapatkan string dalam format yang diinginkan
-      formattedDate = `${namaHariIndo}, ${latestEarningDate.getDate()} ${latestEarningDate.toLocaleString(
+      formattedDate = `${namaHariIndo}, ${thisday.getDate()} ${thisday.toLocaleString(
         "id-ID",
         {
           month: "long",
