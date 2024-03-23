@@ -758,7 +758,7 @@ export const getMoneyTracking = async (req, res) => {
         today.getDate()
       );
 
-      if (todayFormattedDate.getDay() >= latestEarningFormattedDate.getDay()) {
+      if (todayFormattedDate.getDay() > latestEarningFormattedDate.getDay()) {
         // Jika tanggal sama dengan hari ini, kosongkan data
         data.length = 0;
       }
