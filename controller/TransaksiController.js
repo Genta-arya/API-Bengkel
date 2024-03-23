@@ -144,20 +144,8 @@ export const createdTransactions = async (req, res) => {
       earningDate.getFullYear();
 
       // Bandingkan tahun, bulan, dan tanggal dari tanggal akhir dengan tanggal saat ini
-      if (earningDate < today) {
+      if (earningDate === today) {
         // Lakukan update jika tanggal akhir lebih besar dari hari ini
-        await prisma.pendapatanHarian.update({
-          where: { id: existingEarnings.id },
-          data: {
-            keuntungan: { increment: keuntungan },
-            modalAwal: { increment: modalAwal },
-            totalPendapatan: { increment: totalAkhir },
-          },
-        });
-        console.log(
-          `Pendapatan harian Data diperbarui untuk periode dari ${currentTimeISOs} hingga ${currentTimeISOs}`
-        );
-      } else {
         const endOfMonth = new Date(
           today.getFullYear(),
           today.getMonth() + 1,
@@ -179,6 +167,18 @@ export const createdTransactions = async (req, res) => {
         });
         console.log(
           `Pendapatan harian Entitas baru dibuat untuk periode dari ${currentTimeISO} hingga ${endOfMonthISO}`
+        );
+      } else {
+        await prisma.pendapatanHarian.update({
+          where: { id: existingEarnings.id },
+          data: {
+            keuntungan: { increment: keuntungan },
+            modalAwal: { increment: modalAwal },
+            totalPendapatan: { increment: totalAkhir },
+          },
+        });
+        console.log(
+          `Pendapatan harian Data diperbarui untuk periode dari ${currentTimeISOs} hingga ${currentTimeISOs}`
         );
       }
     } else {
