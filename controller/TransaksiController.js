@@ -104,16 +104,7 @@ export const createdTransactions = async (req, res) => {
     }
 
     // handle pendapatanHarian
-
     const today = new Date();
-
-    today.setHours(0, 0, 0, 0);
-    // Mendapatkan day, month, dan year dari tanggal saat ini
-    today.getDate();
-    today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
-    today.getFullYear();
-
-    // Dapatkan waktu saat ini di zona waktu "Asia/Jakarta"
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
@@ -127,16 +118,19 @@ export const createdTransactions = async (req, res) => {
     // Dapatkan waktu saat ini dalam format ISO
     const currentTimeISOs = new Date(currentTimeWIB).toISOString();
 
+    today.setHours(0, 0, 0, 0);
+    const day = today.getDate();
+    const month = today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
+    const year = today.getFullYear();
+
+    // Dapatkan waktu saat ini di zona waktu "Asia/Jakarta"
+    console.log(`${year}-${month}-${day}`);
     const existingEarnings = await prisma.pendapatanHarian.findFirst({
-      where: {
-        tanggal_akhir: {
-          gt: today,
-        },
-      },
-      orderBy: { tanggal_akhir: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+      orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
       take: 1, // Ambil hanya 1 data terbaru
     });
-    console.log(existingEarnings);
+
+    console.log("DATA", existingEarnings);
 
     if (existingEarnings) {
       const earningDate = new Date(existingEarnings.tanggal_akhir);
@@ -144,8 +138,11 @@ export const createdTransactions = async (req, res) => {
       earningDate.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
       earningDate.getFullYear();
 
+      console.log("BATAS", earningDate.getDay());
+      console.log("HARI INI ", today.getDay());
+
       // Bandingkan tahun, bulan, dan tanggal dari tanggal akhir dengan tanggal saat ini
-      if (earningDate.getDate() === today.getDate()) {
+      if (earningDate.getDay() === today.getDay()) {
         // Lakukan update jika tanggal akhir lebih besar dari hari ini
         const endOfMonth = new Date(
           today.getFullYear(),
@@ -203,7 +200,7 @@ export const createdTransactions = async (req, res) => {
     }
     console.log(existingEarningId);
     const latestEarning = await prisma.earning.findFirst({
-      orderBy: { tanggal_akhir: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+      orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
     });
     console.log(latestEarning);
 
@@ -227,7 +224,7 @@ export const createdTransactions = async (req, res) => {
 
     if (
       !existingEarningId ||
-      todayFormattedDate.getTime() === latestEarningFormattedDate.getTime()
+      todayFormattedDate.getDay() === latestEarningFormattedDate.getDay()
     ) {
       console.log("data ditambahkan", currentTimeWIB);
       await prisma.earning.create({
@@ -286,7 +283,7 @@ export const createdTransactions = async (req, res) => {
         tanggal_akhir: true,
       },
       orderBy: {
-        tanggal_akhir: "desc", // Mengurutkan berdasarkan tanggal_akhir secara descending
+        id: "desc", // Mengurutkan berdasarkan tanggal_akhir secara descending
       },
     });
 
@@ -299,14 +296,22 @@ export const createdTransactions = async (req, res) => {
       );
 
       // Mengonversi hari ini ke format tanggal bulan tahun (tanpa jam)
-      const todaysFormatted = new Date(
-        todays.getFullYear(),
-        todays.getMonth(),
-        todays.getDate()
+      const latestGajiMekanik = await prisma.gajiMekanik.findFirst({
+        where: {
+          mekanikId: mekanikIds,
+        },
+        orderBy: {
+          id: 'desc', // Mengurutkan berdasarkan tanggal_akhir secara descending
+        },
+      })
+      console.log("gaji hari ini :", todayFormattedDate.toLocaleDateString());
+      console.log(
+        "batas gaji",
+        latestEarningFormattedDate.toLocaleDateString()
       );
 
       // Memeriksa apakah hari ini sudah melewati tanggal akhir gaji
-      if (todaysFormatted > latestEndDateFormatted) {
+      if (latestEndDateFormatted.getTime() < todays.getTime()) {
         // Buat entitas baru karena tanggal hari ini sudah melewati tanggal akhir
         await prisma.gajiMekanik.create({
           data: {
@@ -323,11 +328,10 @@ export const createdTransactions = async (req, res) => {
         // Lakukan peningkatan nilai gaji jika tanggal hari ini masih berada dalam periode yang sama
         await prisma.gajiMekanik.updateMany({
           where: {
+            id:latestGajiMekanik.id,
             mekanikId: mekanikIds,
-            tanggal_akhir: {
-              gt: todaysFormatted, // Menggunakan operator greater than untuk tanggal yang belum kadaluarsa
-            },
           },
+
           data: {
             jumlah: {
               increment: parseInt(serviceCost),
@@ -733,13 +737,8 @@ export const getMoneyTracking = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     const data = await prisma.earning.findMany({
-      where: {
-        tanggal_akhir: {
-          gt: today,
-        },
-      },
       orderBy: {
-        tanggal_akhir: "desc",
+        id: "desc",
       },
       take: 1,
     });
@@ -761,9 +760,7 @@ export const getMoneyTracking = async (req, res) => {
       console.log(todayFormattedDate.toLocaleDateString);
       console.log(latestEarningFormattedDate);
 
-      if (
-        todayFormattedDate.getTime() === latestEarningFormattedDate.getTime()
-      ) {
+      if (todayFormattedDate.getDay() === latestEarningFormattedDate.getDay()) {
         // Jika tanggal sama dengan hari ini, kosongkan data
         data.length = 0;
       }

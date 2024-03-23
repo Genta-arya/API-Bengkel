@@ -137,7 +137,7 @@ export const createBarang = async (req, res) => {
       });
     } else {
       const latestEarning = await prisma.earning.findFirst({
-        orderBy: { tanggal_akhir: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+        orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
       });
       if (today > new Date(latestEarning.tanggal_akhir)) {
         // Buat entitas baru jika tanggal akhir sudah lewat
@@ -265,7 +265,7 @@ export const EditBarang = async (req, res) => {
       });
     } else {
       const latestEarning = await prisma.earning.findFirst({
-        orderBy: { tanggal_akhir: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+        orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
       });
       if (today > new Date(latestEarning.tanggal_akhir)) {
         // Buat entitas baru jika tanggal akhir sudah lewat
