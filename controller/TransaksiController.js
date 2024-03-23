@@ -197,7 +197,7 @@ export const createdTransactions = async (req, res) => {
     console.log(latestEarning);
 
     const hari = new Date();
-    hari.setHours(0, 0, 0, 0);
+ 
 
     // Mengonversi latestEarning.tanggal_akhir ke format tanggal bulan tahun (tanpa jam)
     const latestEarningDate = new Date(latestEarning.tanggal_akhir);
@@ -215,7 +215,7 @@ export const createdTransactions = async (req, res) => {
     );
 
     if (latestEarning) {
-      if (hari.getTime() === latestEarningFormattedDate.getTime()) {
+      if ( latestEarningDate.getTime() <= hari.getTime()  ) {
         console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
           data: {
