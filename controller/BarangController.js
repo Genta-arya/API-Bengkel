@@ -109,7 +109,6 @@ export const createBarang = async (req, res) => {
         data: { modalAwal: { increment: modalAwal }, tanggal: new Date() },
       });
     }
-    const existingEarning = await prisma.earning.findFirst();
 
     const today = new Date();
 
@@ -126,8 +125,38 @@ export const createBarang = async (req, res) => {
     const currentTimeISO = currentTimeWIB.toISOString();
     const tomorrowISO = tomorrow.toISOString();
 
-    if (!existingEarning) {
-      // Buat entitas baru jika tidak ada entitas sebelumnya
+    const latestEarning = await prisma.earning.findFirst({
+      orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+    });
+    const hari = new Date();
+    hari.setHours(0, 0, 0, 0);
+    const latestEarningDate = new Date(latestEarning.tanggal_akhir);
+    const latestEarningFormattedDate = new Date(
+      latestEarningDate.getFullYear(),
+      latestEarningDate.getMonth(),
+      latestEarningDate.getDate()
+    );
+
+    if (latestEarning) {
+      if (hari.getTime() === latestEarningFormattedDate.getTime()) {
+        console.log("data ditambahkan", currentTimeWIB);
+        await prisma.earning.create({
+          data: {
+            uang_masuk: totalAkhir,
+            tanggal: currentTimeISO,
+            tanggal_akhir: tomorrowISO,
+          },
+        });
+      } else {
+        console.log("data diupdated", currentTimeWIB);
+        await prisma.earning.updateMany({
+          where: {
+            id: latestEarning.id,
+          },
+          data: { uang_keluar: { increment: modalAwal } },
+        });
+      }
+    } else {
       await prisma.earning.create({
         data: {
           uang_keluar: modalAwal,
@@ -135,28 +164,8 @@ export const createBarang = async (req, res) => {
           tanggal_akhir: tomorrowISO,
         },
       });
-    } else {
-      const latestEarning = await prisma.earning.findFirst({
-        orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
-      });
-      if (today > new Date(latestEarning.tanggal_akhir)) {
-        // Buat entitas baru jika tanggal akhir sudah lewat
-        await prisma.earning.create({
-          data: {
-            uang_keluar: modalAwal,
-            tanggal: currentTimeISO,
-            tanggal_akhir: tomorrowISO,
-          },
-        });
-      } else {
-        await prisma.earning.updateMany({
-          where: {
-            id: latestEarning.id, // Perbaiki penulisan id entitas
-          },
-          data: { uang_keluar: { increment: modalAwal } },
-        });
-      }
     }
+
     await prisma.historyBarang.create({
       data: {
         barangId: newBarang.id,
@@ -238,54 +247,63 @@ export const EditBarang = async (req, res) => {
       });
     }
 
-    const existingEarning = await prisma.earning.findFirst();
-
     const today = new Date();
 
-    // Mendapatkan waktu saat ini dalam zona waktu "Asia/Jakarta"
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
+    const currentTimeISO = currentTimeWIB.toISOString();
 
+    // Menghitung tanggal besok
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
-
-    // Konversi waktu saat ini dan tanggal besok ke dalam format ISO
-    const currentTimeISO = currentTimeWIB.toISOString();
     const tomorrowISO = tomorrow.toISOString();
 
-    if (!existingEarning) {
-      // Buat entitas baru jika tidak ada entitas sebelumnya
-      await prisma.earning.create({
-        data: {
-          uang_keluar: stokDifference < 0 ? 0 : stokDifference, // Pastikan uang_keluar tidak kurang dari 0
-          tanggal: currentTimeISO,
-          tanggal_akhir: tomorrowISO,
-        },
-      });
-    } else {
-      const latestEarning = await prisma.earning.findFirst({
-        orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
-      });
-      if (today > new Date(latestEarning.tanggal_akhir)) {
-        // Buat entitas baru jika tanggal akhir sudah lewat
+    const latestEarning = await prisma.earning.findFirst({
+      orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+    });
+    console.log(latestEarning);
+
+    const hari = new Date();
+    hari.setHours(0, 0, 0, 0);
+
+    // Mengonversi latestEarning.tanggal_akhir ke format tanggal bulan tahun (tanpa jam)
+    const latestEarningDate = new Date(latestEarning.tanggal_akhir);
+    const latestEarningFormattedDate = new Date(
+      latestEarningDate.getFullYear(),
+      latestEarningDate.getMonth(),
+      latestEarningDate.getDate()
+    );
+
+    if (latestEarning) {
+      if (hari.getTime() === latestEarningFormattedDate.getTime()) {
+        console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
           data: {
-            uang_keluar: stokDifference < 0 ? 0 : stokDifference, // Pastikan uang_keluar tidak kurang dari 0
+            uang_masuk: totalAkhir,
             tanggal: currentTimeISO,
             tanggal_akhir: tomorrowISO,
           },
         });
       } else {
+        console.log("data diupdated", currentTimeWIB);
         await prisma.earning.updateMany({
           where: {
-            id: latestEarning.id, // Perbaiki penulisan id entitas
+            id: latestEarning.id,
           },
           data: {
             uang_keluar: { increment: stokDifference < 0 ? 0 : stokDifference },
-          }, // Pastikan uang_keluar tidak kurang dari 0
+          },
         });
       }
+    } else {
+      await prisma.earning.create({
+        data: {
+          uang_keluar: { increment: stokDifference < 0 ? 0 : stokDifference },
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
+        },
+      });
     }
 
     const updatedBarang = await prisma.barang.update({
