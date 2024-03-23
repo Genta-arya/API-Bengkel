@@ -225,6 +225,7 @@ export const EditBarang = async (req, res) => {
       where: { id: parseInt(req.params.id) },
     });
     const stokDifference = (parsedStok - previousBarang.stok) * modal;
+    const parseDfirenet = parseInt(stokDifference)
 
     const modalDifference =
       parsedModal * parsedStok - previousBarang.modal * previousBarang.stok;
@@ -280,7 +281,7 @@ export const EditBarang = async (req, res) => {
         console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
           data: {
-            uang_keluar: { increment: stokDifference < 0 ? 0 : stokDifference },
+            uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
             tanggal: currentTimeISO,
             tanggal_akhir: tomorrowISO,
           },
@@ -292,14 +293,14 @@ export const EditBarang = async (req, res) => {
             id: latestEarning.id,
           },
           data: {
-            uang_keluar: { increment: stokDifference < 0 ? 0 : stokDifference },
+            uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
           },
         });
       }
     } else {
       await prisma.earning.create({
         data: {
-          uang_keluar: { increment: stokDifference < 0 ? 0 : stokDifference },
+          uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
           tanggal: currentTimeISO,
           tanggal_akhir: tomorrowISO,
         },
