@@ -107,29 +107,47 @@ export const createdTransactions = async (req, res) => {
 
     const today = new Date();
 
+    // Mendapatkan day, month, dan year dari tanggal saat ini
+    today.getDate();
+    today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
+    today.getFullYear();
+
+    // Dapatkan waktu saat ini di zona waktu "Asia/Jakarta"
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
     const currentTimeISO = currentTimeWIB.toISOString();
 
+    // Menghitung tanggal besok
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
 
+    // Dapatkan waktu saat ini dalam format ISO
     const currentTimeISOs = new Date(currentTimeWIB).toISOString();
 
-    const existingPendapatanHarian = await prisma.pendapatanHarian.findFirst();
+    const existingEarnings = await prisma.pendapatanHarian.findFirst({
+      where: {
+        tanggal_akhir: {
+          gt: today,
+        },
+      },
+      orderBy: { tanggal_akhir: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+      take: 1, // Ambil hanya 1 data terbaru
+    });
+    console.log(existingEarnings);
 
-    const existingPendapatanHarianIds = existingPendapatanHarian?.id;
+    if (existingEarnings) {
+      const earningDate = new Date(existingEarnings.tanggal_akhir);
+      earningDate.getDate();
+      earningDate.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
+      earningDate.getFullYear();
 
-    if (existingPendapatanHarianIds) {
-      const existingEarning = await prisma.pendapatanHarian.findUnique({
-        where: { id: existingPendapatanHarianIds },
-      });
-
-      if (existingEarning && new Date(existingEarning.tanggal_akhir) > today) {
+      // Bandingkan tahun, bulan, dan tanggal dari tanggal akhir dengan tanggal saat ini
+      if (earningDate > today) {
+        // Lakukan update jika tanggal akhir lebih besar dari hari ini
         await prisma.pendapatanHarian.update({
-          where: { id: existingPendapatanHarianIds },
+          where: { id: existingEarnings.id },
           data: {
             keuntungan: { increment: keuntungan },
             modalAwal: { increment: modalAwal },
@@ -149,6 +167,7 @@ export const createdTransactions = async (req, res) => {
           endOfMonth.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
         ).toISOString();
 
+        // Buat entitas baru jika tidak ada data atau tanggal akhir sama dengan hari ini
         await prisma.pendapatanHarian.create({
           data: {
             keuntungan: keuntungan,
@@ -187,7 +206,28 @@ export const createdTransactions = async (req, res) => {
     });
     console.log(latestEarning);
 
-    if (!existingEarningId || today === new Date(latestEarning.tanggal_akhir)) {
+    const hari = new Date();
+    hari.setHours(0, 0, 0, 0);
+
+    // Mengonversi latestEarning.tanggal_akhir ke format tanggal bulan tahun (tanpa jam)
+    const latestEarningDate = new Date(latestEarning.tanggal_akhir);
+    const latestEarningFormattedDate = new Date(
+      latestEarningDate.getFullYear(),
+      latestEarningDate.getMonth(),
+      latestEarningDate.getDate()
+    );
+
+    // Mengonversi today ke format tanggal bulan tahun (tanpa jam)
+    const todayFormattedDate = new Date(
+      hari.getFullYear(),
+      hari.getMonth(),
+      hari.getDate()
+    );
+
+    if (
+      !existingEarningId ||
+      todayFormattedDate.getTime() === latestEarningFormattedDate.getTime()
+    ) {
       console.log("data ditambahkan", currentTimeWIB);
       await prisma.earning.create({
         data: {
@@ -205,7 +245,6 @@ export const createdTransactions = async (req, res) => {
         data: { uang_masuk: { increment: totalAkhir } },
       });
     }
-
     const newTransaction = await prisma.transaksi.create({
       data: {
         nama,
@@ -251,8 +290,22 @@ export const createdTransactions = async (req, res) => {
     });
 
     if (latestEndDate) {
+      // Mengonversi tanggal akhir terbaru ke format tanggal bulan tahun (tanpa jam)
+      const latestEndDateFormatted = new Date(
+        latestEndDate.tanggal_akhir.getFullYear(),
+        latestEndDate.tanggal_akhir.getMonth(),
+        latestEndDate.tanggal_akhir.getDate()
+      );
+
+      // Mengonversi hari ini ke format tanggal bulan tahun (tanpa jam)
+      const todaysFormatted = new Date(
+        todays.getFullYear(),
+        todays.getMonth(),
+        todays.getDate()
+      );
+
       // Memeriksa apakah hari ini sudah melewati tanggal akhir gaji
-      if (todays > new Date(latestEndDate.tanggal_akhir)) {
+      if (todaysFormatted > latestEndDateFormatted) {
         // Buat entitas baru karena tanggal hari ini sudah melewati tanggal akhir
         await prisma.gajiMekanik.create({
           data: {
@@ -271,7 +324,7 @@ export const createdTransactions = async (req, res) => {
           where: {
             mekanikId: mekanikIds,
             tanggal_akhir: {
-              gt: todays, // Menggunakan operator greater than untuk tanggal yang belum kadaluarsa
+              gt: todaysFormatted, // Menggunakan operator greater than untuk tanggal yang belum kadaluarsa
             },
           },
           data: {
@@ -674,7 +727,7 @@ export const getChartDataHarian = async (req, res) => {
 
 export const getMoneyTracking = async (req, res) => {
   try {
-    // Mendapatkan data earning dengan tanggal_akhir lebih besar dari hari ini (tanpa jam)
+    // Mendapatkan tanggal hari ini tanpa jam
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -684,13 +737,35 @@ export const getMoneyTracking = async (req, res) => {
           gt: today,
         },
       },
+      orderBy: {
+        tanggal_akhir: "desc",
+      },
+      take: 1,
     });
 
-
-
-    let tanggalAkhirth = null;
+    let formattedDate = null;
     if (data.length > 0) {
-      tanggalAkhirth = data[0].tanggal_akhir;
+      const latestEarningDate = new Date(data[0].tanggal_akhir);
+      const latestEarningFormattedDate = new Date(
+        latestEarningDate.getFullYear(),
+        latestEarningDate.getMonth(),
+        latestEarningDate.getDate()
+      );
+
+      const todayFormattedDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      );
+      console.log(todayFormattedDate.toLocaleDateString);
+      console.log(latestEarningFormattedDate);
+
+      if (
+        todayFormattedDate.getTime() === latestEarningFormattedDate.getTime()
+      ) {
+        // Jika tanggal sama dengan hari ini, kosongkan data
+        data.length = 0;
+      }
 
       // Array nama hari dalam Bahasa Indonesia
       const namaHari = [
@@ -704,27 +779,20 @@ export const getMoneyTracking = async (req, res) => {
       ];
 
       // Mendapatkan nama hari dalam Bahasa Indonesia
-      const hariIndex = tanggalAkhirth.getDay(); // Mengambil indeks hari dari tanggal
+      const hariIndex = latestEarningDate.getDay(); // Mengambil indeks hari dari tanggal
       const namaHariIndo = namaHari[hariIndex];
 
       // Mendapatkan string dalam format yang diinginkan
-      const formattedDate = `${namaHariIndo}, ${tanggalAkhirth.getDate()} ${tanggalAkhirth.toLocaleString(
+      formattedDate = `${namaHariIndo}, ${latestEarningDate.getDate()} ${latestEarningDate.toLocaleString(
         "id-ID",
         {
           month: "long",
           year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          timeZoneName: "short",
         }
       )}`;
-
-      console.log(today)
-
-      res.status(200).json({ data: data, tanggal: formattedDate });
-    } else {
-      res.status(200).json({ message: "Data tidak ditemukan" });
     }
+
+    res.status(200).json({ data: data, tanggal: formattedDate });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -732,8 +800,6 @@ export const getMoneyTracking = async (req, res) => {
     await prisma.$disconnect();
   }
 };
-
-
 
 // const today = pendapatanHarianData[0].tanggal;
 // const startDates = new Date(
