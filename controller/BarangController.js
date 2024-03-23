@@ -237,6 +237,85 @@ export const EditBarang = async (req, res) => {
       });
     }
 
+    const existingEarning = await prisma.earning.findFirst();
+
+    const today = new Date();
+
+    // Mendapatkan waktu saat ini dalam zona waktu "Asia/Jakarta"
+    const currentTimeWIB = new Date(
+      today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
+    );
+
+    // Menerapkan zona waktu yang sama pada tanggal besok (tomorrow)
+    const tomorrow = new Date(currentTimeWIB);
+    tomorrow.setDate(currentTimeWIB.getDate() + 1);
+
+    // Konversi waktu saat ini dan tanggal besok ke dalam format ISO
+    const currentTimeISO = currentTimeWIB.toISOString();
+    const tomorrowISO = tomorrow.toISOString();
+
+    if (!existingEarning) {
+      // Buat entitas baru jika tidak ada entitas sebelumnya
+      await prisma.earning.create({
+        data: {
+          uang_keluar: modalDifference,
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
+        },
+      });
+    } else {
+      const latestEarning = await prisma.earning.findFirst({
+        orderBy: { tanggal_akhir: 'desc' }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+      });
+      if (today > new Date(latestEarning.tanggal_akhir)) {
+        // Buat entitas baru jika tanggal akhir sudah lewat
+        await prisma.earning.create({
+          data: {
+            uang_keluar: modalDifference,
+            tanggal: currentTimeISO,
+            tanggal_akhir: tomorrowISO,
+          },
+        });
+      } else {
+        await prisma.earning.updateMany({
+          where: {
+            id: latestEarning.id, // Perbaiki penulisan id entitas
+          },
+          data: { uang_keluar: { increment: modalAwal } },
+        });
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const updatedBarang = await prisma.barang.update({
       where: { id: parseInt(req.params.id) },
       data: {
