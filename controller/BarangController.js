@@ -280,7 +280,7 @@ export const EditBarang = async (req, res) => {
         console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
           data: {
-            uang_masuk: totalAkhir,
+            uang_keluar: { increment: stokDifference < 0 ? 0 : stokDifference },
             tanggal: currentTimeISO,
             tanggal_akhir: tomorrowISO,
           },
