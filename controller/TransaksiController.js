@@ -804,6 +804,7 @@ export const getMoneyTracking = async (req, res) => {
     let formattedDate = null;
     if (data.length > 0) {
       const latestEarningDate = data[0].tanggal_akhir;
+      const thisday = data[0].tanggal
 
       console.log(latestEarningDate.toLocaleDateString());
       console.log(today.toLocaleDateString());
@@ -825,7 +826,7 @@ export const getMoneyTracking = async (req, res) => {
       ];
 
       // Mendapatkan nama hari dalam Bahasa Indonesia
-      const hariIndex = latestEarningDate.getDay(); // Mengambil indeks hari dari tanggal
+      const hariIndex = thisday.getDay(); // Mengambil indeks hari dari tanggal
       const namaHariIndo = namaHari[hariIndex];
 
       // Mendapatkan string dalam format yang diinginkan
