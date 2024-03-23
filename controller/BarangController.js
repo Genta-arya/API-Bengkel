@@ -137,7 +137,7 @@ export const createBarang = async (req, res) => {
       });
     } else {
       const latestEarning = await prisma.earning.findFirst({
-        orderBy: { tanggal_akhir: 'desc' }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+        orderBy: { tanggal_akhir: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
       });
       if (today > new Date(latestEarning.tanggal_akhir)) {
         // Buat entitas baru jika tanggal akhir sudah lewat
@@ -215,13 +215,12 @@ export const EditBarang = async (req, res) => {
     const previousBarang = await prisma.barang.findUnique({
       where: { id: parseInt(req.params.id) },
     });
-    const stokDifference =(parsedStok - previousBarang.stok ) * modal;
-    
+    const stokDifference = (parsedStok - previousBarang.stok) * modal;
+
     const modalDifference =
       parsedModal * parsedStok - previousBarang.modal * previousBarang.stok;
 
     const existingPendapatan = await prisma.pendapatan.findFirst();
-
 
     let existingPendapatanId = null;
 
@@ -248,7 +247,6 @@ export const EditBarang = async (req, res) => {
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
 
-  
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
 
@@ -260,20 +258,20 @@ export const EditBarang = async (req, res) => {
       // Buat entitas baru jika tidak ada entitas sebelumnya
       await prisma.earning.create({
         data: {
-          uang_keluar: stokDifference,
+          uang_keluar: stokDifference < 0 ? 0 : stokDifference, // Pastikan uang_keluar tidak kurang dari 0
           tanggal: currentTimeISO,
           tanggal_akhir: tomorrowISO,
         },
       });
     } else {
       const latestEarning = await prisma.earning.findFirst({
-        orderBy: { tanggal_akhir: 'desc' }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+        orderBy: { tanggal_akhir: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
       });
       if (today > new Date(latestEarning.tanggal_akhir)) {
         // Buat entitas baru jika tanggal akhir sudah lewat
         await prisma.earning.create({
           data: {
-            uang_keluar: stokDifference ,
+            uang_keluar: stokDifference < 0 ? 0 : stokDifference, // Pastikan uang_keluar tidak kurang dari 0
             tanggal: currentTimeISO,
             tanggal_akhir: tomorrowISO,
           },
@@ -283,40 +281,12 @@ export const EditBarang = async (req, res) => {
           where: {
             id: latestEarning.id, // Perbaiki penulisan id entitas
           },
-          data: { uang_keluar: { increment: stokDifference} },
+          data: {
+            uang_keluar: { increment: stokDifference < 0 ? 0 : stokDifference },
+          }, // Pastikan uang_keluar tidak kurang dari 0
         });
       }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     const updatedBarang = await prisma.barang.update({
       where: { id: parseInt(req.params.id) },
