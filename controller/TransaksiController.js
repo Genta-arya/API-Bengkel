@@ -107,6 +107,7 @@ export const createdTransactions = async (req, res) => {
 
     const today = new Date();
 
+    today.setHours(0, 0, 0, 0);
     // Mendapatkan day, month, dan year dari tanggal saat ini
     today.getDate();
     today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
