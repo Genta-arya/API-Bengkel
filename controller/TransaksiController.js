@@ -191,14 +191,6 @@ export const createdTransactions = async (req, res) => {
       });
     }
 
-    const existingEarning = await prisma.earning.findFirst();
-
-    let existingEarningId = null;
-
-    if (existingEarning) {
-      existingEarningId = existingEarning.id;
-    }
-    console.log(existingEarningId);
     const latestEarning = await prisma.earning.findFirst({
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
     });
@@ -222,11 +214,26 @@ export const createdTransactions = async (req, res) => {
       hari.getDate()
     );
 
-    if (
-      !existingEarningId ||
-      hari.getDay() === latestEarningFormattedDate.getDay()
-    ) {
-      console.log("data ditambahkan", currentTimeWIB);
+    if (latestEarning) {
+      if (hari.getTime() === latestEarningFormattedDate.getTime()) {
+        console.log("data ditambahkan", currentTimeWIB);
+        await prisma.earning.create({
+          data: {
+            uang_masuk: totalAkhir,
+            tanggal: currentTimeISO,
+            tanggal_akhir: tomorrowISO,
+          },
+        });
+      } else {
+        console.log("data diupdated", currentTimeWIB);
+        await prisma.earning.updateMany({
+          where: {
+            id: latestEarning.id,
+          },
+          data: { uang_masuk: { increment: totalAkhir } },
+        });
+      }
+    } else {
       await prisma.earning.create({
         data: {
           uang_masuk: totalAkhir,
@@ -234,15 +241,8 @@ export const createdTransactions = async (req, res) => {
           tanggal_akhir: tomorrowISO,
         },
       });
-    } else {
-      console.log("data diupdated", currentTimeWIB);
-      await prisma.earning.updateMany({
-        where: {
-          id: latestEarning.id,
-        },
-        data: { uang_masuk: { increment: totalAkhir } },
-      });
     }
+
     const newTransaction = await prisma.transaksi.create({
       data: {
         nama,
@@ -301,9 +301,9 @@ export const createdTransactions = async (req, res) => {
           mekanikId: mekanikIds,
         },
         orderBy: {
-          id: 'desc', // Mengurutkan berdasarkan tanggal_akhir secara descending
+          id: "desc", // Mengurutkan berdasarkan tanggal_akhir secara descending
         },
-      })
+      });
       console.log("gaji hari ini :", todayFormattedDate.toLocaleDateString());
       console.log(
         "batas gaji",
@@ -328,7 +328,7 @@ export const createdTransactions = async (req, res) => {
         // Lakukan peningkatan nilai gaji jika tanggal hari ini masih berada dalam periode yang sama
         await prisma.gajiMekanik.updateMany({
           where: {
-            id:latestGajiMekanik.id,
+            id: latestGajiMekanik.id,
             mekanikId: mekanikIds,
           },
 
@@ -757,7 +757,6 @@ export const getMoneyTracking = async (req, res) => {
         today.getMonth(),
         today.getDate()
       );
-     
 
       if (todayFormattedDate.getDay() === latestEarningFormattedDate.getDay()) {
         // Jika tanggal sama dengan hari ini, kosongkan data
