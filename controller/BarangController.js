@@ -128,16 +128,16 @@ export const createBarang = async (req, res) => {
     const latestEarning = await prisma.earning.findFirst({
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
     });
-    const hari = new Date();
-    hari.setHours(0, 0, 0, 0);
-    const latestEarningDate = new Date(latestEarning.tanggal_akhir);
-    const latestEarningFormattedDate = new Date(
-      latestEarningDate.getFullYear(),
-      latestEarningDate.getMonth(),
-      latestEarningDate.getDate()
-    );
 
     if (latestEarning) {
+      const hari = new Date();
+      hari.setHours(0, 0, 0, 0);
+      const latestEarningDate = new Date(latestEarning.tanggal_akhir);
+      const latestEarningFormattedDate = new Date(
+        latestEarningDate.getFullYear(),
+        latestEarningDate.getMonth(),
+        latestEarningDate.getDate()
+      );
       if (hari.getTime() === latestEarningFormattedDate.getTime()) {
         console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
@@ -225,7 +225,7 @@ export const EditBarang = async (req, res) => {
       where: { id: parseInt(req.params.id) },
     });
     const stokDifference = (parsedStok - previousBarang.stok) * modal;
-    const parseDfirenet = parseInt(stokDifference)
+    const parseDfirenet = parseInt(stokDifference);
 
     const modalDifference =
       parsedModal * parsedStok - previousBarang.modal * previousBarang.stok;
@@ -281,7 +281,7 @@ export const EditBarang = async (req, res) => {
         console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
           data: {
-            uang_keluar: parseDfirenet < 0 ? 0 : parseDfirenet ,
+            uang_keluar: parseDfirenet < 0 ? 0 : parseDfirenet,
             tanggal: currentTimeISO,
             tanggal_akhir: tomorrowISO,
           },
@@ -335,7 +335,7 @@ export const EditBarang = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -438,7 +438,6 @@ export const getBarang = async (req, res) => {
       totalPages: totalPages,
     });
   } catch (error) {
-
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
