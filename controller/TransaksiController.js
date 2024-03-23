@@ -734,7 +734,6 @@ export const getMoneyTracking = async (req, res) => {
   try {
     // Mendapatkan tanggal hari ini tanpa jam
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     const data = await prisma.earning.findMany({
       orderBy: {
@@ -746,19 +745,11 @@ export const getMoneyTracking = async (req, res) => {
     let formattedDate = null;
     if (data.length > 0) {
       const latestEarningDate = new Date(data[0].tanggal_akhir);
-      const latestEarningFormattedDate = new Date(
-        latestEarningDate.getFullYear(),
-        latestEarningDate.getMonth(),
-        latestEarningDate.getDate()
-      );
 
-      const todayFormattedDate = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate()
-      );
+      console.log(latestEarningDate.toLocaleDateString());
+      console.log(today.toLocaleDateString());
 
-      if (todayFormattedDate.getDay() === latestEarningFormattedDate.getDay()) {
+      if (latestEarningDate.getTime() < today.getTime()) {
         // Jika tanggal sama dengan hari ini, kosongkan data
         data.length = 0;
       }
