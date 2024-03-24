@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-
+import moment from "moment";
+import "moment-timezone";
 const prisma = new PrismaClient();
 
 export const createdTransactions = async (req, res) => {
@@ -115,23 +116,27 @@ export const createdTransactions = async (req, res) => {
       timeZone: "Asia/Jakarta",
     }); // String ISO 8601 dengan zona waktu Asia/Jakarta
     const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
-  
+
     // Set jam, menit, detik, dan milidetik ke 00:00:00
     dateObj.setHours(0, 0, 0, 0);
-  
+
     // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
     const isoString = dateObj.toISOString();
-  
 
+    const daypendapatan = new Date();
     const currentTimeWIB = new Date(
-      today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
+      daypendapatan.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
+
     const currentTimeISO = currentTimeWIB.toISOString();
+
+    console.log("jam sekarang", currentTimeISO);
 
     // Menghitung tanggal besok
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
+    console.log("jambesok", tomorrowISO);
 
     // Dapatkan waktu saat ini dalam format ISO
 
@@ -157,7 +162,7 @@ export const createdTransactions = async (req, res) => {
       take: 1, // Ambil hanya 1 data terbaru
     });
 
-    console.log("DATA", existingEarnings);
+    console.log("DATA Pendapatan", existingEarnings);
 
     if (existingEarnings) {
       await prisma.pendapatanHarian.update({
@@ -825,9 +830,9 @@ export const getMoneyTracking = async (req, res) => {
     timeZone: "Asia/Jakarta",
   }); // String ISO 8601 dengan zona waktu Asia/Jakarta
   const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
-
+  const da = new Date();
   // Set jam, menit, detik, dan milidetik ke 00:00:00
-  dateObj.setHours(0, 0, 0, 0);
+  // dateObj.setHours(0, 0, 0, 0);
 
   // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
   const isoString = dateObj.toISOString();
@@ -837,9 +842,9 @@ export const getMoneyTracking = async (req, res) => {
 
     const data = await prisma.earning.findMany({
       where: {
-        tanggal: {
+        tanggal_akhir: {
           gte: isoString, // Rentang hari ini mulai dari 00:00:00
-          lt: new Date(dateObj.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+          lt: new Date(da.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
       orderBy: {
@@ -849,6 +854,27 @@ export const getMoneyTracking = async (req, res) => {
     });
 
     console.log(data);
+
+    // console.log(new Date(da.getTime() + 24 * 60 * 60 * 1000).toISOString());
+
+    // Mendapatkan waktu saat ini dalam UTC
+    const currentTimeUTC = moment.utc();
+
+    // Mengonversi waktu UTC ke Zona Waktu Indonesia Barat (WIB)
+    const currentTimeWIB = currentTimeUTC.tz("Asia/Jakarta");
+
+    // Mendapatkan waktu dalam format ISO untuk tampilan atau penyimpanan
+    const currentTimeISO = currentTimeWIB.toISOString();
+    console.log("jam sekarang", currentTimeWIB.toISOString());
+ console.log(dateObj.toLocaleString())
+    // Menghitung waktu untuk hari berikutnya dalam Zona WIB
+    const tomorrowWIB = currentTimeWIB.clone().add(1, "day");
+
+    // Mendapatkan waktu besok dalam format ISO untuk tampilan atau penyimpanan
+    const tomorrowISO = tomorrowWIB.toISOString();
+    console.log("jambesok", tomorrowISO);
+
+
 
     let formattedDate = null;
     if (data.length > 0) {
