@@ -859,15 +859,12 @@ export const getMoneyTracking = async (req, res) => {
           year: "numeric",
         }
       )}`;
-      const hari = new Date();
-      const options = {
-        timeZone: 'Asia/Jakarta',
-       
-      };
+      const hari = new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
+      const isoString = new Date(hari).toISOString();
       const days = new Date()
+   
       
-      const day = hari.toISOString('id-ID', options);
-      res.status(200).json({ data: data, tanggal: formattedDate ,today:day , day:days });
+      res.status(200).json({ data: data, tanggal: formattedDate ,today:isoString, day:days });
     } else {
       res.status(200).json({ data: [], message: "Belum ada transaksi" , today:today });
     }
