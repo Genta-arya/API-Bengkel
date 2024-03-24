@@ -830,7 +830,7 @@ export const getMoneyTracking = async (req, res) => {
   const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
   const da = new Date();
   // Set jam, menit, detik, dan milidetik ke 00:00:00
-  // dateObj.setHours(0, 0, 0, 0);
+  dateObj.setHours(0, 0, 0, 0);
 
   // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
   const isoString = dateObj.toISOString();
