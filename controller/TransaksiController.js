@@ -107,17 +107,12 @@ export const createdTransactions = async (req, res) => {
     const todayss = new Date().toLocaleString("en-US", {
       timeZone: "Asia/Jakarta",
     });
-   const today = new Date()
+    const today = new Date();
     today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
-  
+
     // Format ISO 8601 untuk tanggal dan waktu
     const isoToday = new Date(todayss).toISOString();
     isoToday.setHours(0, 0, 0, 0);
-
-
-
-
-
 
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
@@ -134,8 +129,6 @@ export const createdTransactions = async (req, res) => {
     const day = today.getDate();
     const month = today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
     const year = today.getFullYear();
-
-    
 
     today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
 
@@ -817,8 +810,16 @@ export const getMoneyTracking = async (req, res) => {
   // Set jam ke 00:00:00
 
   // Format ISO 8601 untuk tanggal dan waktu
-  const isoToday = new Date(today).toISOString();
-  isoToday.setHours(0, 0, 0, 0);
+  // const isoToday = new Date(today).toISOString();
+  // isoToday.setHours(0, 0, 0, 0);
+  const isoToday = today.toLocaleString("en-US", options); // String ISO 8601 dengan zona waktu Asia/Jakarta
+  const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
+
+  // Set jam, menit, detik, dan milidetik ke 00:00:00
+  dateObj.setHours(0, 0, 0, 0);
+
+  // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
+  const isoString = dateObj.toISOString();
 
   try {
     // Mendapatkan tanggal hari ini tanpa jam
@@ -880,14 +881,12 @@ export const getMoneyTracking = async (req, res) => {
       const isoString = new Date(hari).toISOString();
       const days = new Date();
 
-      res
-        .status(200)
-        .json({
-          data: data,
-          tanggal: formattedDate,
-          today: isoString,
-          day: days,
-        });
+      res.status(200).json({
+        data: data,
+        tanggal: formattedDate,
+        today: isoString,
+        day: days,
+      });
     } else {
       res
         .status(200)
