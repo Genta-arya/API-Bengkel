@@ -111,8 +111,17 @@ export const createdTransactions = async (req, res) => {
     today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
 
     // Format ISO 8601 untuk tanggal dan waktu
-    const isoToday = new Date(todayss).toISOString();
-    isoToday.setHours(0, 0, 0, 0);
+    const isoToday = todayss.toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    }); // String ISO 8601 dengan zona waktu Asia/Jakarta
+    const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
+  
+    // Set jam, menit, detik, dan milidetik ke 00:00:00
+    dateObj.setHours(0, 0, 0, 0);
+  
+    // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
+    const isoString = dateObj.toISOString();
+  
 
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
@@ -140,8 +149,8 @@ export const createdTransactions = async (req, res) => {
     const existingEarnings = await prisma.pendapatanHarian.findFirst({
       where: {
         tanggal: {
-          gte: isoToday, // Rentang hari ini mulai dari 00:00:00
-          lt: new Date(todayss.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+          gte: isoString, // Rentang hari ini mulai dari 00:00:00
+          lt: new Date(dateObj.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
@@ -223,8 +232,8 @@ export const createdTransactions = async (req, res) => {
     const latestEarning = await prisma.earning.findFirst({
       where: {
         tanggal: {
-          gte: isoToday, // Rentang hari ini mulai dari 00:00:00
-          lt: new Date(todayss.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+          gte: isoString, // Rentang hari ini mulai dari 00:00:00
+          lt: new Date(dateObj.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
