@@ -862,10 +862,10 @@ export const getMoneyTracking = async (req, res) => {
       const hari = new Date();
       const options = {
         timeZone: 'Asia/Jakarta',
-        hour12: false, // Menggunakan format 24 jam
+       
       };
       
-      const day = hari.toLocaleString('id-ID', options);
+      const day = hari.toISOString('id-ID', options);
       res.status(200).json({ data: data, tanggal: formattedDate ,today:day });
     } else {
       res.status(200).json({ data: [], message: "Belum ada transaksi" , today:today });
