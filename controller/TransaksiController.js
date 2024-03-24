@@ -817,9 +817,7 @@ export const getChartDataHarian = async (req, res) => {
 };
 
 export const getMoneyTracking = async (req, res) => {
-  const today = new Date().toLocaleString("en-US", {
-    timeZone: "Asia/Jakarta",
-  });
+  const today = new Date()
 
   // Set jam ke 00:00:00
 
