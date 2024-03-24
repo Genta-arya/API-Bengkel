@@ -116,11 +116,11 @@ export const createBarang = async (req, res) => {
       timeZone: "Asia/Jakarta",
     });
   
-    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+    // today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00  isoToday.setHours(0, 0, 0, 0);
   
     // Format ISO 8601 untuk tanggal dan waktu
     const isoToday = new Date(today).toISOString();
-
+    isoToday.setHours(0, 0, 0, 0);
 
 
     // Mendapatkan waktu saat ini dalam zona waktu "Asia/Jakarta"
@@ -282,10 +282,11 @@ export const EditBarang = async (req, res) => {
       timeZone: "Asia/Jakarta",
     });
   
-    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+  
   
     // Format ISO 8601 untuk tanggal dan waktu
     const isoToday = new Date(today).toISOString();
+    isoToday.setHours(0, 0, 0, 0);
 
 
 

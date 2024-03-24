@@ -104,14 +104,15 @@ export const createdTransactions = async (req, res) => {
     }
 
     // handle pendapatanHarian
-    const today = new Date().toLocaleString("en-US", {
+    const todayss = new Date().toLocaleString("en-US", {
       timeZone: "Asia/Jakarta",
     });
-  
+   const today = new Date()
     today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
   
     // Format ISO 8601 untuk tanggal dan waktu
-    const isoToday = new Date(today).toISOString();
+    const isoToday = new Date(todayss).toISOString();
+    isoToday.setHours(0, 0, 0, 0);
 
 
 
@@ -147,7 +148,7 @@ export const createdTransactions = async (req, res) => {
       where: {
         tanggal: {
           gte: isoToday, // Rentang hari ini mulai dari 00:00:00
-          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+          lt: new Date(todayss.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
@@ -230,7 +231,7 @@ export const createdTransactions = async (req, res) => {
       where: {
         tanggal: {
           gte: isoToday, // Rentang hari ini mulai dari 00:00:00
-          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+          lt: new Date(todayss.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
