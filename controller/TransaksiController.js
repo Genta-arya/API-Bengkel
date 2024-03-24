@@ -104,7 +104,20 @@ export const createdTransactions = async (req, res) => {
     }
 
     // handle pendapatanHarian
-    const today = new Date();
+    const today = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    });
+  
+    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+  
+    // Format ISO 8601 untuk tanggal dan waktu
+    const isoToday = new Date(today).toISOString();
+
+
+
+
+
+
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
@@ -121,6 +134,8 @@ export const createdTransactions = async (req, res) => {
     const month = today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
     const year = today.getFullYear();
 
+    
+
     today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
 
     const endOfDay = new Date();
@@ -131,7 +146,7 @@ export const createdTransactions = async (req, res) => {
     const existingEarnings = await prisma.pendapatanHarian.findFirst({
       where: {
         tanggal: {
-          gte: today.toISOString(), // Rentang hari ini mulai dari 00:00:00
+          gte: isoToday, // Rentang hari ini mulai dari 00:00:00
           lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
@@ -214,7 +229,7 @@ export const createdTransactions = async (req, res) => {
     const latestEarning = await prisma.earning.findFirst({
       where: {
         tanggal: {
-          gte: today.toISOString(), // Rentang hari ini mulai dari 00:00:00
+          gte: isoToday, // Rentang hari ini mulai dari 00:00:00
           lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
@@ -794,24 +809,22 @@ export const getChartDataHarian = async (req, res) => {
 };
 
 export const getMoneyTracking = async (req, res) => {
-  const today = new Date();
+  const today = new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Jakarta",
+  });
+
   today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
 
-  const endOfDay = new Date();
-  endOfDay.setHours(23, 59, 59, 999); // Set jam ke 23:59:59
+  // Format ISO 8601 untuk tanggal dan waktu
+  const isoToday = new Date(today).toISOString();
 
   try {
     // Mendapatkan tanggal hari ini tanpa jam
-    const today = new Date();
-    // Mengatur jam, menit, detik, dan milidetik menjadi 0 untuk mengabaikan waktu
-    today.setHours(0, 0, 0, 0);
-    const iso = today.toISOString(); // Mendapatkan format ISO dengan jam 00:00:00.000Z
-    console.log(iso);
 
     const data = await prisma.earning.findMany({
       where: {
         tanggal: {
-          gte: today.toISOString(), // Rentang hari ini mulai dari 00:00:00
+          gte: isoToday, // Rentang hari ini mulai dari 00:00:00
           lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
@@ -859,14 +872,24 @@ export const getMoneyTracking = async (req, res) => {
           year: "numeric",
         }
       )}`;
-      const hari = new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
+      const hari = new Date().toLocaleString("en-US", {
+        timeZone: "Asia/Jakarta",
+      });
       const isoString = new Date(hari).toISOString();
-      const days = new Date()
-   
-      
-      res.status(200).json({ data: data, tanggal: formattedDate ,today:isoString, day:days });
+      const days = new Date();
+
+      res
+        .status(200)
+        .json({
+          data: data,
+          tanggal: formattedDate,
+          today: isoString,
+          day: days,
+        });
     } else {
-      res.status(200).json({ data: [], message: "Belum ada transaksi" , today:today });
+      res
+        .status(200)
+        .json({ data: [], message: "Belum ada transaksi", today: today });
     }
   } catch (error) {
     console.error(error);
