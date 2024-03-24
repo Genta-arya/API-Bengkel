@@ -110,7 +110,19 @@ export const createBarang = async (req, res) => {
       });
     }
 
-    const today = new Date();
+    // const today = new Date();
+
+    const today = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    });
+  
+    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+  
+    // Format ISO 8601 untuk tanggal dan waktu
+    const isoToday = new Date(today).toISOString();
+
+
+
     // Mendapatkan waktu saat ini dalam zona waktu "Asia/Jakarta"
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
@@ -122,14 +134,16 @@ export const createBarang = async (req, res) => {
     // Konversi waktu saat ini dan tanggal besok ke dalam format ISO
     const currentTimeISO = currentTimeWIB.toISOString();
     const tomorrowISO = tomorrow.toISOString();
-    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999)
+    // today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+    // const endOfDay = new Date();
+    // endOfDay.setHours(23, 59, 59, 999)
+
+    
 
     const latestEarning = await prisma.earning.findFirst({
       where: {
         tanggal: {
-          gte: today.toISOString(), // Rentang hari ini mulai dari 00:00:00
+          gte: isoToday, // Rentang hari ini mulai dari 00:00:00
           lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
@@ -263,7 +277,18 @@ export const EditBarang = async (req, res) => {
       });
     }
 
-    const today = new Date();
+    // const today = new Date();
+    const today = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    });
+  
+    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+  
+    // Format ISO 8601 untuk tanggal dan waktu
+    const isoToday = new Date(today).toISOString();
+
+
+
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
@@ -271,13 +296,13 @@ export const EditBarang = async (req, res) => {
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
-    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+    // today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999); // Set jam ke 23:59:59
     const latestEarning = await prisma.earning.findFirst({
       where: {
         tanggal: {
-          gte: today.toISOString(), // Rentang hari ini mulai dari 00:00:00
+          gte: isoToday, // Rentang hari ini mulai dari 00:00:00
           lt: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
