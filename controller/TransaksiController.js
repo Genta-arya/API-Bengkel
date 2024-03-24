@@ -844,7 +844,7 @@ export const getMoneyTracking = async (req, res) => {
       where: {
         tanggal: {
           gte: isoString, // Rentang hari ini mulai dari 00:00:00
-          lt: new Date(da.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+          lt: new Date(dateObj.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
       orderBy: {
