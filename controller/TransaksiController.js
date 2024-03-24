@@ -812,7 +812,9 @@ export const getMoneyTracking = async (req, res) => {
   // Format ISO 8601 untuk tanggal dan waktu
   // const isoToday = new Date(today).toISOString();
   // isoToday.setHours(0, 0, 0, 0);
-  const isoToday = today.toLocaleString("en-US", options); // String ISO 8601 dengan zona waktu Asia/Jakarta
+  const isoToday = today.toLocaleString("en-US", {
+    timeZone: "Asia/Jakarta",
+  }); // String ISO 8601 dengan zona waktu Asia/Jakarta
   const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
 
   // Set jam, menit, detik, dan milidetik ke 00:00:00
