@@ -35,7 +35,7 @@ export const getGajiTeknisi = async (req, res) => {
     const filteredGaji = allGaji.filter((gaji) => {
       const gajiTanggalAkhir = new Date(gaji.tanggal_akhir);
       console.log("Tanggal Akhir Gaji:", gajiTanggalAkhir.toISOString());
-      return isoString <= gajiTanggalAkhir;
+      return dateObj <= gajiTanggalAkhir;
     });
     const formatDate = (date) => {
       const options = { day: "2-digit", month: "long", year: "numeric" };
