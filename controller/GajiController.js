@@ -16,6 +16,8 @@ export const getGajiTeknisi = async (req, res) => {
         .json({ message: "Belum ada data saat ini", data: [] });
     }
 
+    const today = new Date();
+
     const isoToday = today.toLocaleString("en-US", {
       timeZone: "Asia/Jakarta",
     }); // String ISO 8601 dengan zona waktu Asia/Jakarta
@@ -26,7 +28,7 @@ export const getGajiTeknisi = async (req, res) => {
     const isoString = dateObj.toISOString();
 
     // Mendapatkan tanggal hari ini
-    const today = new Date();
+
     console.log("Tanggal Hari Ini:", today.toISOString());
 
     // Filter data yang tanggal gajinya belum melewati batas akhir tanggal (gaji.tanggal_akhir)
