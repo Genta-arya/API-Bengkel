@@ -375,7 +375,7 @@ export const createdTransactions = async (req, res) => {
       // );
 
       // Memeriksa apakah hari ini sudah melewati tanggal akhir gaji
-      if (latestEndDateFormatted.getTime() < todays.getTime()) {
+      if (latestEndDateFormatted.getTime() < dateObj.getTime()) {
         // Buat entitas baru karena tanggal hari ini sudah melewati tanggal akhir
         await prisma.gajiMekanik.create({
           data: {
@@ -817,7 +817,7 @@ export const getChartDataHarian = async (req, res) => {
 };
 
 export const getMoneyTracking = async (req, res) => {
-  const today = new Date()
+  const today = new Date();
 
   // Set jam ke 00:00:00
 
@@ -828,12 +828,12 @@ export const getMoneyTracking = async (req, res) => {
     timeZone: "Asia/Jakarta",
   }); // String ISO 8601 dengan zona waktu Asia/Jakarta
   const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
-  const da = new Date();
   // Set jam, menit, detik, dan milidetik ke 00:00:00
   dateObj.setHours(0, 0, 0, 0);
 
   // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
   const isoString = dateObj.toISOString();
+  const da = new Date();
 
   try {
     // Mendapatkan tanggal hari ini tanpa jam
@@ -864,15 +864,13 @@ export const getMoneyTracking = async (req, res) => {
     // Mendapatkan waktu dalam format ISO untuk tampilan atau penyimpanan
     const currentTimeISO = currentTimeWIB.toISOString();
     console.log("jam sekarang", currentTimeWIB.toISOString());
- console.log(dateObj.toLocaleString())
+    console.log(dateObj.toLocaleString());
     // Menghitung waktu untuk hari berikutnya dalam Zona WIB
     const tomorrowWIB = currentTimeWIB.clone().add(1, "day");
 
     // Mendapatkan waktu besok dalam format ISO untuk tampilan atau penyimpanan
     const tomorrowISO = tomorrowWIB.toISOString();
     console.log("jambesok", tomorrowISO);
-
-
 
     let formattedDate = null;
     if (data.length > 0) {
@@ -925,7 +923,12 @@ export const getMoneyTracking = async (req, res) => {
     } else {
       res
         .status(200)
-        .json({ data: [], message: "Belum ada transaksi", today: today  ,day: isoString,});
+        .json({
+          data: [],
+          message: "Belum ada transaksi",
+          today: today,
+          day: isoString,
+        });
     }
   } catch (error) {
     console.error(error);
