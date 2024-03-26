@@ -215,7 +215,7 @@ export const createdTransactions = async (req, res) => {
     );
 
     if (latestEarning) {
-      if ( latestEarningDate.getTime() === hari.getTime()  ) {
+      if ( latestEarningDate.getTime() <= hari.getTime()  ) {
         console.log("data ditambahkan", currentTimeWIB);
         await prisma.earning.create({
           data: {
@@ -749,7 +749,7 @@ export const getMoneyTracking = async (req, res) => {
       console.log(latestEarningDate.toLocaleDateString());
       console.log(today.toLocaleDateString());
 
-      if (latestEarningDate.getTime() <= today.getTime()) {
+      if (latestEarningDate.getTime() < today.getTime()) {
         // Jika tanggal sama dengan hari ini, kosongkan data
         data.length = 0;
       }
