@@ -158,6 +158,7 @@ export const createdTransactions = async (req, res) => {
           lt: new Date(dateObj.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
         },
       },
+
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
       take: 1, // Ambil hanya 1 data terbaru
     });
@@ -244,6 +245,50 @@ export const createdTransactions = async (req, res) => {
       orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
     });
     console.log("Data Earning", latestEarning);
+    const startOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+    const lastDayOfMonth = new Date(
+      dateObj.getFullYear(),
+      dateObj.getMonth() + 1,
+      0
+    );
+    const findSaldo = await prisma.sadoKas.findFirst({
+      where: {
+        tanggal: {
+          gte: startOfMonth,
+          lt: new Date(
+            dateObj.getFullYear(),
+            dateObj.getMonth() + 1,
+            0
+          ).toISOString(),
+        },
+      },
+      orderBy: { id: "desc" },
+    });
+
+    if (!findSaldo) {
+      console.log("Entitas Saldo dibuat");
+      await prisma.sadoKas.create({
+        data: {
+          nominal: keuntungan,
+          tanggal: isoString,
+          tanggal_akhir: new Date(
+            lastDayOfMonth.getFullYear(),
+            lastDayOfMonth.getMonth(),
+            lastDayOfMonth.getDate() + 1
+          ).toISOString(),
+        },
+      });
+    } else {
+      console.log("Entitas Saldo diperbarui");
+      await prisma.sadoKas.update({
+        where: {
+          id: findSaldo.id,
+        },
+        data: {
+          nominal: { increment: keuntungan },
+        },
+      });
+    }
 
     // const hari = new Date();
 
@@ -770,8 +815,26 @@ export const getChartDataHarian = async (req, res) => {
             tanggal: "asc",
           },
         });
-
         totalKeuntungan = data.reduce((acc, curr) => acc + curr.keuntungan, 0);
+
+        // Update totalKeuntungan di database
+        // const updateResult = await prisma.pendapatanHarian.updateMany({
+        //   where: {
+        //     tanggal_akhir: {
+        //       gte: startDates,
+        //       lte: endDates,
+        //     },
+        //   },
+        //   data: {
+        //     totalKeuntungan: totalKeuntungan,
+        //   },
+        // });
+
+        // if (updateResult.count > 0) {
+        //   console.log(`Total keuntungan berhasil diupdate: ${totalKeuntungan}`);
+        // } else {
+        //   console.log("Tidak ada data yang diupdate.");
+        // }
         break;
     }
 
@@ -833,7 +896,6 @@ export const getMoneyTracking = async (req, res) => {
 
   // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
   const isoString = dateObj.toISOString();
-  const da = new Date();
 
   try {
     // Mendapatkan tanggal hari ini tanpa jam
@@ -921,14 +983,12 @@ export const getMoneyTracking = async (req, res) => {
         day: days,
       });
     } else {
-      res
-        .status(200)
-        .json({
-          data: [],
-          message: "Belum ada transaksi",
-          today: today,
-          day: isoString,
-        });
+      res.status(200).json({
+        data: [],
+        message: "Belum ada transaksi",
+        today: today,
+        day: isoString,
+      });
     }
   } catch (error) {
     console.error(error);

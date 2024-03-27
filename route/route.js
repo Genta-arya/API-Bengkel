@@ -38,8 +38,9 @@ import {
 } from "../controller/MekanikController.js";
 import { sendMessage } from "../Config/Twilio/Config.js";
 import { Middleware, MiddlewareEarning } from "../controller/Midleware.js";
-import {  getData } from "../controller/getdata.js";
+import { getData } from "../controller/getdata.js";
 import { getGajiTeknisi } from "../controller/GajiController.js";
+import { EditPinjamDana, GetMyDana, PinjamDana, deleteDana } from "../controller/PinjamController.js";
 
 const router = express.Router();
 
@@ -65,7 +66,7 @@ router.get("/search/mekanik", Middleware, searchMekanik);
 router.post("/mekanik", Middleware, createMekanik);
 router.put("/mekanik/:id", Middleware, EditMekanik);
 router.delete("/mekanik/:id", Middleware, DeleteMekanik);
-router.get("/salary/teknisi",getGajiTeknisi)
+router.get("/salary/teknisi", getGajiTeknisi);
 
 // Transaksi Controller
 router.post("/transaksi", createdTransactions);
@@ -73,16 +74,23 @@ router.get("/transaksi", getTransaction);
 router.get("/graphic/transaksi", MiddlewareEarning, getChartData);
 router.get("/graphic/harian/transaksi", MiddlewareEarning, getChartDataHarian);
 router.get("/money", MiddlewareEarning, getMoneyTracking);
-router.get("/search/transaksi",searchTransactionByNopol)
-router.get("/all/transaksi",getAllTransaction)
+router.get("/search/transaksi", searchTransactionByNopol);
+router.get("/all/transaksi", getAllTransaction);
+
+// Dana Penguluaran
+router.post("/dana/pinjam", PinjamDana);
+router.get("/dana/pinjam", GetMyDana);
+router.put("/dana/pinjam/:id", EditPinjamDana);
+router.delete("/dana/pinjam/:id", deleteDana);
+
+
 // Message Controller
 // router.get("/qrchat",getQr)
 // router.post("/send-whatsapp",sendWhatsAppMessage)
 
 // Histroy Controller
 router.get("/history", getHistory);
-router.get("/data",getData)
-
+router.get("/data", getData);
 
 // router.post("/message", sendMessage);
 

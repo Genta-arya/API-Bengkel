@@ -115,24 +115,21 @@ export const createBarang = async (req, res) => {
     const today = new Date().toLocaleString("en-US", {
       timeZone: "Asia/Jakarta",
     });
-  
-    // today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00  isoToday.setHours(0, 0, 0, 0);
-  
-    // Format ISO 8601 untuk tanggal dan waktu
-    
 
+    // today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00  isoToday.setHours(0, 0, 0, 0);
+
+    // Format ISO 8601 untuk tanggal dan waktu
 
     const isoToday = today.toLocaleString("en-US", {
       timeZone: "Asia/Jakarta",
     }); // String ISO 8601 dengan zona waktu Asia/Jakarta
     const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
-  
+
     // Set jam, menit, detik, dan milidetik ke 00:00:00
     dateObj.setHours(0, 0, 0, 0);
-  
+
     // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
     const isoString = dateObj.toISOString();
-
 
     // Mendapatkan waktu saat ini dalam zona waktu "Asia/Jakarta"
     const currentTimeWIB = new Date(
@@ -148,8 +145,6 @@ export const createBarang = async (req, res) => {
     // today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
     // const endOfDay = new Date();
     // endOfDay.setHours(23, 59, 59, 999)
-
-    
 
     const latestEarning = await prisma.earning.findFirst({
       where: {
@@ -172,14 +167,14 @@ export const createBarang = async (req, res) => {
       // );
       // if (latestEarningDate.getTime() <= hari.getTime()) {
       //   console.log("data ditambahkan", currentTimeWIB);
-      console.log("Earning dibuat")
-        await prisma.earning.create({
-          data: {
-            uang_keluar: modalAwal,
-            tanggal: currentTimeISO,
-            tanggal_akhir: tomorrowISO,
-          },
-        });
+      console.log("Earning dibuat");
+      await prisma.earning.create({
+        data: {
+          uang_keluar: modalAwal,
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
+        },
+      });
       // } else {
       //   console.log("data diupdated", currentTimeWIB);
       //   await prisma.earning.updateMany({
@@ -197,7 +192,7 @@ export const createBarang = async (req, res) => {
       //     tanggal_akhir: tomorrowISO,
       //   },
       // });
-      console.log("Earning diupdate")
+      console.log("Earning diupdate");
       await prisma.earning.updateMany({
         where: {
           id: latestEarning.id,
@@ -292,21 +287,18 @@ export const EditBarang = async (req, res) => {
     const today = new Date().toLocaleString("en-US", {
       timeZone: "Asia/Jakarta",
     });
-  
-  
-  
+
     // Format ISO 8601 untuk tanggal dan waktu
     const isoToday = today.toLocaleString("en-US", {
       timeZone: "Asia/Jakarta",
     }); // String ISO 8601 dengan zona waktu Asia/Jakarta
     const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
-  
+
     // Set jam, menit, detik, dan milidetik ke 00:00:00
     dateObj.setHours(0, 0, 0, 0);
-  
+
     // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
     const isoString = dateObj.toISOString();
-
 
     const currentTimeWIB = new Date(
       today.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
@@ -342,7 +334,7 @@ export const EditBarang = async (req, res) => {
     if (!latestEarning) {
       // if (latestEarningDate.getTime() <= hari.getTime()) {
       //   console.log("data ditambahkan", currentTimeWIB);
-         console.log("Created Earning");
+      console.log("Created Earning");
       await prisma.earning.create({
         data: {
           uang_keluar: parseDfirenet < 0 ? 0 : parseDfirenet,
@@ -372,7 +364,6 @@ export const EditBarang = async (req, res) => {
       console.log("Updated Earning");
 
       await prisma.earning.updateMany({
-
         where: {
           id: latestEarning.id,
         },
@@ -525,6 +516,13 @@ export const getAllBarang = async (req, res) => {
       include: {
         barcodes: true,
       },
+    });
+
+    // Mengurutkan data berdasarkan nama barang (A-Z)
+    allBarang.sort((a, b) => {
+      if (a.nama < b.nama) return -1;
+      if (a.nama > b.nama) return 1;
+      return 0;
     });
 
     res.status(200).json({
