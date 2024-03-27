@@ -44,7 +44,7 @@ export const PinjamDana = async (req, res) => {
         .json({ data: [], message: "Belum ada keuntungan" });
     }
 
-    const Pendapatan = pendapatan[0].nominal || 0 ;
+    const Pendapatan = pendapatan[0].nominal || 0;
     if (Pendapatan < parseNominal) {
       return res.status(400).json({ error: "Keuangan tidak mencukupi" });
     }
@@ -134,16 +134,20 @@ export const EditPinjamDana = async (req, res) => {
 
     if (pendapatan.length === 0) {
       return res
-        .status(200)
-        .json({ data: [], message: "Belum ada keuntungan" });
+        .status(400)
+        .json({
+          data: [],
+          message:
+            "Transaksi tidak dapat dilanjutkan Karna belum ada pemasukan saldo Kas",
+        });
     }
 
     const calculate = currentNominal - difference;
     console.log("nominal data sekarang", currentNominal);
     console.log("nominal req.body", parseNominal);
     console.log(calculate);
-    const Pendapatan = pendapatan[0].nominal || 0 ;
-    if (Pendapatan< parseNominal) {
+    const Pendapatan = pendapatan[0].nominal || 0;
+    if (Pendapatan < parseNominal) {
       return res.status(400).json({ error: "Saldo kas tidak mencukupi" });
     }
 
@@ -233,7 +237,7 @@ export const GetMyDana = async (req, res) => {
     if (pendapatan.length === 0) {
       return res
         .status(200)
-        .json({ data: [], message: "Belum ada keuntungan"  , pendapatan:[]});
+        .json({ data: [], message: "Belum ada keuntungan", pendapatan: [] });
     }
 
     let mydana;
