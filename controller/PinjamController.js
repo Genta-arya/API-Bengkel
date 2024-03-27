@@ -142,8 +142,8 @@ export const EditPinjamDana = async (req, res) => {
     console.log("nominal data sekarang", currentNominal);
     console.log("nominal req.body", parseNominal);
     console.log(calculate);
-
-    if (pendapatan[0].nominal < parseNominal) {
+    const Pendapatan = pendapatan[0].nominal || 0 ;
+    if (Pendapatan< parseNominal) {
       return res.status(400).json({ error: "Saldo kas tidak mencukupi" });
     }
 
