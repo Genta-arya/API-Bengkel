@@ -39,9 +39,11 @@ export const PinjamDana = async (req, res) => {
     });
 
     if (pendapatan.length === 0) {
-      return res
-        .status(200)
-        .json({ data: [], message: "Belum ada keuntungan" });
+      return res.status(400).json({
+        data: [],
+        error:
+          "Transaksi tidak dapat dilanjutkan Karna belum ada pemasukan saldo Kas",
+      });
     }
 
     const Pendapatan = pendapatan[0].nominal || 0;
@@ -135,11 +137,7 @@ export const EditPinjamDana = async (req, res) => {
     if (pendapatan.length === 0) {
       return res
         .status(400)
-        .json({
-          data: [],
-          error:
-            "Transaksi tidak dapat dilanjutkan Karna belum ada pemasukan saldo Kas",
-        });
+        .json({ data: [], message: "Belum ada keuntungan" });
     }
 
     const calculate = currentNominal - difference;
