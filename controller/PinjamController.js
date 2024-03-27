@@ -233,7 +233,7 @@ export const GetMyDana = async (req, res) => {
     if (pendapatan.length === 0) {
       return res
         .status(200)
-        .json({ data: [], message: "Belum ada keuntungan" });
+        .json({ data: [], message: "Belum ada keuntungan"  , pendapatan:[]});
     }
 
     let mydana;
