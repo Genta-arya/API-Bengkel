@@ -240,8 +240,7 @@ export const GetMyDana = async (req, res) => {
 
     let mydana;
     if (filter) {
-      // Jika terdapat filter, gunakan filter dalam pencarian data
-
+     
       mydana = await prisma.peminjamans.findMany({
         where: {
           tanggal: {
@@ -254,22 +253,7 @@ export const GetMyDana = async (req, res) => {
           },
         },
       });
-      // if (mydana.length === 0) {
-      //   return res.status(404).json({ message: "Data tidak ditemuakn" });
-      // } else {
-      //   mydana = await prisma.peminjamans.findMany({
-      //     where: {
-      //       tanggal: {
-      //         gte: startOfMonth,
-      //         lt: new Date(
-      //           dateObj.getFullYear(),
-      //           dateObj.getMonth() + 1,
-      //           0
-      //         ).toISOString(),
-      //       },
-      //     },
-      //   });
-      // }
+     
     } else {
       mydana = await prisma.peminjamans.findMany({
         where: {
@@ -290,6 +274,7 @@ export const GetMyDana = async (req, res) => {
         data: [],
         message: "Belum ada pengeluaran",
         pendapatan: pendapatan,
+        bulan:  monthNameID,
       });
     }
     console.log(mydana);

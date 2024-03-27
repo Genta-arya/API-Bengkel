@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import e from "express";
 import moment from "moment";
 import "moment-timezone";
 const prisma = new PrismaClient();
@@ -537,15 +538,45 @@ export const getTransaction = async (req, res) => {
 
 export const getAllTransaction = async (req, res) => {
   try {
-    const today = new Date();
-    const startDates = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endDates = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    let startDates, endDates;
+
+    // const today = new Date();
+    // const startDates = new Date(today.getFullYear(), today.getMonth(), 1);
+    // const endDates = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const { startDate } = req.query;
+    console.log(startDate);
+
+    if (startDate) {
+      // Jika filter tanggal diberikan, gunakan tanggal yang diberikan
+      startDates = new Date(startDate);
+      endDates = new Date(startDate);
+    } else {
+      // Jika tidak ada filter tanggal, gunakan default tanggal
+      const today = new Date();
+      startDates = new Date(today.getFullYear(), today.getMonth(), 1);
+      endDates = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    }
+
+    // Ambil awal bulan dan akhir bulan berdasarkan tanggal yang diberikan
+    const startOfMonth = new Date(
+      startDates.getFullYear(),
+      startDates.getMonth(),
+      1
+    );
+    const endOfMonth = new Date(
+      endDates.getFullYear(),
+      endDates.getMonth() + 1,
+      0
+    );
+
+    console.log("Awal bulan:", startOfMonth.toLocaleDateString());
+    console.log("Akhir bulan:", endOfMonth.toLocaleDateString());
 
     const pendapatan = await prisma.pendapatanHarian.findMany({
       where: {
         tanggal: {
-          gte: startDates,
-          lte: endDates,
+          gte: startOfMonth,
+          lte: endOfMonth,
         },
       },
       select: {
@@ -553,6 +584,8 @@ export const getAllTransaction = async (req, res) => {
         keuntungan: true,
       },
     });
+
+    console.log(pendapatan);
     const calculateTotal = (data) => {
       let totalPendapatan = 0;
       let keuntungan = 0;
@@ -566,14 +599,13 @@ export const getAllTransaction = async (req, res) => {
       return [totalPendapatan, keuntungan];
     };
 
-    // Menghitung total pendapatan dan keuntungan dari data
     const totals = calculateTotal(pendapatan);
 
     const arrayPendapatan = [
       { totalPendapatan: totals[0], keuntungan: totals[1] },
     ];
 
-    console.log(arrayPendapatan);
+    // console.log(arrayPendapatan);
 
     const transaksi = await prisma.transaksi.findMany({
       include: {
@@ -586,28 +618,20 @@ export const getAllTransaction = async (req, res) => {
       },
       where: {
         tanggal: {
-          gte: startDates,
-          lte: endDates,
+          gte: startOfMonth,
+          lte: endOfMonth,
         },
       },
     });
 
     if (transaksi.length === 0) {
-      return res.status(404).json({ message: "Transaksi Bulan ini tidak ada" });
+      return res.status(404).json({ message: "Transaksi Tidak ditemukan" });
     }
 
     const totalService = transaksi.reduce(
       (acc, curr) => acc + curr.totalService,
       0
     );
-
-    const formattedTransaksi = transaksi.map((item) => {
-      return {
-        ...item,
-        pendapatanKotor:
-          item.total + totalService + pendapatan[0].totalPendapatan,
-      };
-    });
 
     const total = pendapatan.reduce(
       (acc, curr) => acc + curr.totalPendapatan,
@@ -623,8 +647,8 @@ export const getAllTransaction = async (req, res) => {
       return `${day}-${month}-${year}`;
     };
 
-    const formattedStartDate = formatDate(startDates);
-    const formattedEndDate = formatDate(endDates);
+    const formattedStartDate = formatDate(startOfMonth);
+    const formattedEndDate = formatDate(endOfMonth);
 
     const periode = `${formattedStartDate} sampai ${formattedEndDate}`;
     console.log(

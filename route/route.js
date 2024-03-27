@@ -74,14 +74,14 @@ router.get("/transaksi", getTransaction);
 router.get("/graphic/transaksi", MiddlewareEarning, getChartData);
 router.get("/graphic/harian/transaksi", MiddlewareEarning, getChartDataHarian);
 router.get("/money", MiddlewareEarning, getMoneyTracking);
-router.get("/search/transaksi", searchTransactionByNopol);
-router.get("/all/transaksi", getAllTransaction);
+router.get("/search/transaksi",Middleware, searchTransactionByNopol);
+router.get("/all/transaksi",Middleware, getAllTransaction);
 
 // Dana Penguluaran
-router.post("/dana/pinjam", PinjamDana);
-router.get("/dana/pinjam", GetMyDana);
-router.put("/dana/pinjam/:id", EditPinjamDana);
-router.delete("/dana/pinjam/:id", deleteDana);
+router.post("/dana/pinjam",Middleware, PinjamDana);
+router.get("/dana/pinjam",Middleware, GetMyDana);
+router.put("/dana/pinjam/:id",Middleware, EditPinjamDana);
+router.delete("/dana/pinjam/:id", Middleware,deleteDana);
 
 
 // Message Controller

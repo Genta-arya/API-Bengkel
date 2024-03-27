@@ -85,10 +85,11 @@ model Peminjamans {
   nominal Int      @default(0)
   tanggal DateTime @default(now())
 }
+
 model SadoKas {
-  id Int @id @default(autoincrement())
-  nominal Int @default(0)
- tanggal       DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  nominal       Int      @default(0)
+  tanggal       DateTime @default(now())
   tanggal_akhir DateTime
 }
 
