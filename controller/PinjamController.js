@@ -44,7 +44,7 @@ export const PinjamDana = async (req, res) => {
         .json({ data: [], message: "Belum ada keuntungan" });
     }
 
-    const Pendapatan = pendapatan[0].nominal;
+    const Pendapatan = pendapatan[0].nominal || 0 ;
     if (Pendapatan < parseNominal) {
       return res.status(400).json({ error: "Keuangan tidak mencukupi" });
     }
