@@ -137,7 +137,7 @@ export const EditPinjamDana = async (req, res) => {
         .status(400)
         .json({
           data: [],
-          message:
+          error:
             "Transaksi tidak dapat dilanjutkan Karna belum ada pemasukan saldo Kas",
         });
     }
