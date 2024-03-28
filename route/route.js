@@ -20,6 +20,7 @@ import {
 } from "../controller/TransaksiController.js";
 import {
   Logout,
+  changePassword,
   handleLogin,
   handleRegister,
   isLoggIn,
@@ -36,7 +37,7 @@ import {
   getDataMekanik,
   searchMekanik,
 } from "../controller/MekanikController.js";
-import { sendMessage } from "../Config/Twilio/Config.js";
+
 import { Middleware, MiddlewareEarning } from "../controller/Midleware.js";
 import { getData } from "../controller/getdata.js";
 import { getGajiTeknisi } from "../controller/GajiController.js";
@@ -49,6 +50,7 @@ router.post("/register", handleRegister);
 router.post("/login", handleLogin);
 router.post("/logout", Logout);
 router.post("/user", isLoggIn);
+router.post("/change/password",Middleware,changePassword)
 
 // produk Controller
 router.get("/produk", Middleware, getBarang);

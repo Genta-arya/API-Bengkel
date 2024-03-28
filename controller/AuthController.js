@@ -63,7 +63,7 @@ export const handleRegister = async (req, res) => {
       .status(201)
       .json({ data: userResponse, message: "created succes", status: 201 });
   } catch (error) {
-  console.log(error)
+    console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
@@ -119,7 +119,7 @@ export const handleLogin = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
     await prisma.$disconnect();
@@ -191,8 +191,10 @@ export const isLoggIn = async (req, res) => {
       });
     }
   } catch (error) {
-  console.error(error)
-    return res.status(500).json({ error: "Internal Server Error" , status:500 });
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: 500 });
   } finally {
     await prisma.$disconnect();
   }
@@ -234,9 +236,47 @@ export const Logout = async (req, res) => {
       .status(200)
       .json({ isLogged: false, message: "Logout berhasil", status: 200 });
   } catch (error) {
-
     res.status(500).json({ error: "Internal Server Error" });
   } finally {
-    await prisma.$disconnect(); 
+    await prisma.$disconnect();
+  }
+};
+
+export const changePassword = async (req, res) => {
+  const { username, password, confirmPassword } = req.body;
+
+  try {
+    const findUser = await prisma.auth.findUnique({
+      where: {
+        username: username,
+      },
+    });
+
+    if (!findUser) {
+      return res.status(404).json({ error: "Akun tidak ditemukan" });
+    }
+
+
+    if (password !== confirmPassword) {
+      return res
+        .status(400)
+        .json({ error: "Konfirmasi password tidak sesuai" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.auth.update({
+      where: {
+        username: username,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    res.status(200).json({ message: "Password berhasil diubah", status: 200 });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Terjadi kesalahan pada server" });
   }
 };
