@@ -25,6 +25,10 @@ app.use(cors());
 
 app.use(router);
 
+
+app.get('/', (req, res) => {
+  res.redirect('https://sscenter.smkn2ketapang.sch.id/');
+});
 // app.post('/send-whatsapp', async (req, res) => {
 //   const { number, message } = req.body;
 
