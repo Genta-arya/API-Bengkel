@@ -491,6 +491,9 @@ export const getBarang = async (req, res) => {
       include: {
         barcodes: true,
       },
+      orderBy:{
+        id:"desc"
+      },
       skip,
       take,
     });
