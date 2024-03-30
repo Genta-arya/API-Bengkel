@@ -36,7 +36,7 @@ export const createBarang = async (req, res) => {
   const parsedStok = parseInt(stok);
   const parsedDiskon = parseFloat(diskon) / 100;
 
-  if (!nama || !harga || !stok || !diskon || !modal || !service) {
+  if (!nama || !harga || !stok || !diskon || !modal ) {
     return res.status(401).json({ error: "Field tidak boleh kosong" });
   }
 
@@ -77,7 +77,7 @@ export const createBarang = async (req, res) => {
         stok: parsedStok,
         diskon: parsedDiskon,
         modal: parsedModal,
-        service: parsedService,
+        service: 0,
         kode: qrCodeData,
       },
     });
@@ -207,7 +207,7 @@ export const createBarang = async (req, res) => {
         tipe: "tambah",
         waktu: new Date(),
         nama: nama,
-        perubahan: `Barang baru dengan nama ${nama} ditambahkan dengan harga ${parsedHarga}, stok ${parsedStok} , diskon ${diskon} , modal awal ${modal} , biaya service ${service}.`,
+        perubahan: `Barang baru dengan nama ${nama} ditambahkan dengan harga ${parsedHarga}, stok ${parsedStok} , diskon ${diskon} , modal awal ${modal} `,
       },
     });
 
@@ -241,7 +241,7 @@ export const EditBarang = async (req, res) => {
   const parsedModal = parseInt(modal);
   const parsedDiskon = parseFloat(diskon) / 100;
 
-  if (!nama || !harga || !stok || !diskon || !modal || !service) {
+  if (!nama || !harga || !stok || !diskon || !modal ) {
     return res.status(401).json({ error: "Field tidak boleh kosong" });
   }
 
@@ -381,7 +381,7 @@ export const EditBarang = async (req, res) => {
         stok: parsedStok,
         diskon: parsedDiskon,
         modal: parsedModal,
-        service: parsedService,
+        service: 0,
       },
     });
 
@@ -391,7 +391,7 @@ export const EditBarang = async (req, res) => {
         tipe: "edit",
         waktu: new Date(),
         nama: nama,
-        perubahan: `Informasi barang diubah: nama diubah menjadi ${nama}, harga diubah menjadi ${parsedHarga}, stok diubah menjadi ${parsedStok} , Diskon menjadi ${diskon} dan modal awal menjadi ${modal} , biaya service menjadi ${service}`,
+        perubahan: `Informasi barang diubah: nama diubah menjadi ${nama}, harga diubah menjadi ${parsedHarga}, stok diubah menjadi ${parsedStok} , Diskon menjadi ${diskon} dan modal awal menjadi ${modal} `,
       },
     });
 
