@@ -74,7 +74,7 @@ export const createdTransactions = async (req, res) => {
       existingPendapatanId = existingPendapatan.id;
     }
 
-    const totalAkhir = total;
+    const totalAkhir = total + serviceCost;
 
     let modalAwal = 0;
 
@@ -252,6 +252,7 @@ export const createdTransactions = async (req, res) => {
       dateObj.getMonth() + 1,
       0
     );
+
     const findSaldo = await prisma.sadoKas.findFirst({
       where: {
         tanggal: {
@@ -498,6 +499,318 @@ export const createdTransactions = async (req, res) => {
   }
 };
 
+export const createdTransaksiWithounItem = async (req, res) => {
+  try {
+    const { nama, alamat, motor, detail, mekanikId, service, noHp, nopol } =
+      req.body;
+
+    const parseService = parseInt(service, 10);
+    const mekanikIds = parseInt(mekanikId, 10);
+
+    const existingPendapatan = await prisma.pendapatan.findFirst();
+
+    let existingPendapatanId = null;
+
+    if (existingPendapatan) {
+      existingPendapatanId = existingPendapatan.id;
+    }
+
+    const totalAkhir = parseService;
+
+    let modalAwal = 0;
+
+    if (existingPendapatan) {
+      modalAwal = existingPendapatan.modalAwal;
+    }
+
+    const earning = totalAkhir;
+    const keuntungan = earning;
+
+    if (existingPendapatanId) {
+      await prisma.pendapatan.update({
+        where: { id: existingPendapatanId },
+        data: {
+          tanggal: new Date(),
+          keuntungan: { increment: keuntungan },
+          totalPendapatan: { increment: totalAkhir },
+        },
+      });
+    } else {
+      await prisma.pendapatan.create({
+        data: {
+          modalAwal: 0,
+          keuntungan: keuntungan,
+          totalPendapatan: totalAkhir,
+          tanggal: new Date(),
+        },
+      });
+    }
+
+    // handle pendapatanHarian
+    const todayss = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+
+    // Format ISO 8601 untuk tanggal dan waktu
+    const isoToday = todayss.toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    }); // String ISO 8601 dengan zona waktu Asia/Jakarta
+    const dateObj = new Date(isoToday); // Ubah kembali ke objek Date
+
+    // Set jam, menit, detik, dan milidetik ke 00:00:00
+    dateObj.setHours(0, 0, 0, 0);
+
+    // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
+    const isoString = dateObj.toISOString();
+
+    const daypendapatan = new Date();
+    const currentTimeWIB = new Date(
+      daypendapatan.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
+    );
+
+    const currentTimeISO = currentTimeWIB.toISOString();
+
+    console.log("jam sekarang", currentTimeISO);
+
+    // Menghitung tanggal besok
+    const tomorrow = new Date(currentTimeWIB);
+    tomorrow.setDate(currentTimeWIB.getDate() + 1);
+    const tomorrowISO = tomorrow.toISOString();
+    console.log("jambesok", tomorrowISO);
+
+    // Dapatkan waktu saat ini dalam format ISO
+
+    const day = today.getDate();
+    const month = today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
+    const year = today.getFullYear();
+
+    today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999); // Set jam ke 23:59:59
+
+    // Dapatkan waktu saat ini di zona waktu "Asia/Jakarta"
+    console.log(`${year}-${month}-${day}`);
+    const existingEarnings = await prisma.pendapatanHarian.findFirst({
+      where: {
+        tanggal: {
+          gte: isoString, // Rentang hari ini mulai dari 00:00:00
+          lt: new Date(dateObj.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+        },
+      },
+
+      orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+      take: 1, // Ambil hanya 1 data terbaru
+    });
+
+    console.log("DATA Pendapatan", existingEarnings);
+
+    if (existingEarnings) {
+      await prisma.pendapatanHarian.update({
+        where: { id: existingEarnings.id },
+        data: {
+          modalAwal: { increment: keuntungan },
+          totalPendapatan: { increment: totalAkhir },
+        },
+      });
+      console.log("Pendapatan Harian Di Perbarui");
+    } else {
+      console.log("Pendapatan Harian Di Buat");
+      await prisma.pendapatanHarian.create({
+        data: {
+          modalAwal: keuntungan,
+          totalPendapatan: totalAkhir,
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
+        },
+      });
+    }
+
+    const startDates = new Date(currentTimeWIB);
+    const endDates = new Date(startDates);
+    endDates.setDate(startDates.getDate() + 7); // Tambahkan 7 hari untuk mendapatkan akhir seminggu dari hari ini
+    const endDatesISO = endDates.toISOString();
+    const startDateISO = startDates.toISOString();
+
+    // Mendapatkan tanggal akhir terbaru berdasarkan mekanikId
+    const latestEndDate = await prisma.gajiMekanik.findFirst({
+      where: {
+        mekanikId: mekanikIds,
+      },
+      select: {
+        tanggal_akhir: true,
+      },
+      orderBy: {
+        id: "desc", // Mengurutkan berdasarkan tanggal_akhir secara descending
+      },
+    });
+
+    if (latestEndDate) {
+      // Mengonversi tanggal akhir terbaru ke format tanggal bulan tahun (tanpa jam)
+      const latestEndDateFormatted = new Date(
+        latestEndDate.tanggal_akhir.getFullYear(),
+        latestEndDate.tanggal_akhir.getMonth(),
+        latestEndDate.tanggal_akhir.getDate()
+      );
+
+      // Mengonversi hari ini ke format tanggal bulan tahun (tanpa jam)
+      const latestGajiMekanik = await prisma.gajiMekanik.findFirst({
+        where: {
+          mekanikId: mekanikIds,
+        },
+        orderBy: {
+          id: "desc", // Mengurutkan berdasarkan tanggal_akhir secara descending
+        },
+      });
+
+      // Memeriksa apakah hari ini sudah melewati tanggal akhir gaji
+      if (latestEndDateFormatted.getTime() < dateObj.getTime()) {
+        // Buat entitas baru karena tanggal hari ini sudah melewati tanggal akhir
+        await prisma.gajiMekanik.create({
+          data: {
+            jumlah: parseInt(serviceCost),
+            tanggal: startDateISO,
+            tanggal_akhir: endDatesISO,
+            mekanikId: mekanikIds,
+          },
+        });
+        console.log(
+          `Entitas Gaji baru dibuat untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`
+        );
+      } else {
+        // Lakukan peningkatan nilai gaji jika tanggal hari ini masih berada dalam periode yang sama
+        await prisma.gajiMekanik.updateMany({
+          where: {
+            id: latestGajiMekanik.id,
+            mekanikId: mekanikIds,
+          },
+
+          data: {
+            jumlah: {
+              increment: parseService,
+            },
+          },
+        });
+        console.log(
+          `Data Gaji diperbarui untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`
+        );
+      }
+    } else {
+      // Buat entitas baru karena tidak ada gaji mekanik sebelumnya
+      await prisma.gajiMekanik.create({
+        data: {
+          jumlah: parseService,
+          tanggal: startDateISO,
+          tanggal_akhir: endDatesISO,
+          mekanikId: mekanikIds,
+        },
+      });
+      console.log(
+        `Entitas Gaji baru dibuat untuk periode dari ${startDates.toDateString()} hingga ${endDates.toDateString()}`
+      );
+    }
+    const startOfMonth = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1);
+    const lastDayOfMonth = new Date(
+      dateObj.getFullYear(),
+      dateObj.getMonth() + 1,
+      0
+    );
+
+    const findSaldo = await prisma.sadoKas.findFirst({
+      where: {
+        tanggal: {
+          gte: startOfMonth,
+          lt: new Date(
+            dateObj.getFullYear(),
+            dateObj.getMonth() + 1,
+            0
+          ).toISOString(),
+        },
+      },
+      orderBy: { id: "desc" },
+    });
+
+    if (!findSaldo) {
+      console.log("Entitas Saldo dibuat");
+      await prisma.sadoKas.create({
+        data: {
+          nominal: keuntungan,
+          tanggal: isoString,
+          tanggal_akhir: new Date(
+            lastDayOfMonth.getFullYear(),
+            lastDayOfMonth.getMonth(),
+            lastDayOfMonth.getDate() + 1
+          ).toISOString(),
+        },
+      });
+    } else {
+      console.log("Entitas Saldo diperbarui");
+      await prisma.sadoKas.update({
+        where: {
+          id: findSaldo.id,
+        },
+        data: {
+          nominal: { increment: keuntungan },
+        },
+      });
+    }
+    const latestEarning = await prisma.earning.findFirst({
+      where: {
+        tanggal: {
+          gte: isoString, // Rentang hari ini mulai dari 00:00:00
+          lt: new Date(dateObj.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Sampai dengan 23:59:59.999Z hari ini
+        },
+      },
+      orderBy: { id: "desc" }, // Mengurutkan berdasarkan tanggal_akhir secara descending
+    });
+    if (!latestEarning) {
+      console.log("Pendapatan Earning Di buat");
+      await prisma.earning.create({
+        data: {
+          uang_masuk: totalAkhir,
+          tanggal: currentTimeISO,
+          tanggal_akhir: tomorrowISO,
+        },
+      });
+    } else {
+      console.log("Pendapatan Earning Di perbarui");
+      await prisma.earning.updateMany({
+        where: {
+          id: latestEarning.id,
+        },
+        data: { uang_masuk: { increment: totalAkhir } },
+      });
+    }
+
+    const newTransaction = await prisma.transaksi.create({
+      data: {
+        nama,
+        alamat,
+        motor,
+        detail,
+        nopol,
+        noHp,
+        total: totalAkhir,
+        totalService: parseService,
+        mekanikId: mekanikIds,
+      },
+      include: {
+        transaksiBarangs: true,
+      },
+    });
+
+    res.status(201).json(newTransaction);
+  } catch (error) {
+    // Menangani kesalahan dan mengembalikan respons dengan pesan kesalahan
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    await prisma.$disconnect(); // Disconnect from the database when done
+  }
+};
+
 export const getTransaction = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -640,6 +953,9 @@ export const getAllTransaction = async (req, res) => {
 
     const pendapatanKotor = totalService + total;
 
+    console.log("total service",totalService)
+    console.log("total",total)
+
     const formatDate = (date) => {
       const day = date.getDate().toString().padStart(2, "0");
       const month = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -659,7 +975,7 @@ export const getAllTransaction = async (req, res) => {
       data: transaksi,
       pendapatan: arrayPendapatan,
       periode,
-      pendapatanKotor,
+      pendapatanKotor: total,
     });
   } catch (error) {
     console.error("Error fetching transactions:", error);

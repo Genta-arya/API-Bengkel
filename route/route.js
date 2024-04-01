@@ -11,6 +11,7 @@ import {
 
 import {
   createdTransactions,
+  createdTransaksiWithounItem,
   getAllTransaction,
   getChartData,
   getChartDataHarian,
@@ -72,6 +73,7 @@ router.get("/salary/teknisi", getGajiTeknisi);
 
 // Transaksi Controller
 router.post("/transaksi", createdTransactions);
+router.post("/transaksi/service", createdTransaksiWithounItem);
 router.get("/transaksi", getTransaction);
 router.get("/graphic/transaksi", MiddlewareEarning, getChartData);
 router.get("/graphic/harian/transaksi", MiddlewareEarning, getChartDataHarian);
