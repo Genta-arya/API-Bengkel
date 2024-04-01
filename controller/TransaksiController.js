@@ -177,52 +177,6 @@ export const createdTransactions = async (req, res) => {
       });
       console.log("Pendapatan Harian Di Perbarui");
 
-      // const earningDate = new Date(existingEarnings.tanggal_akhir);
-      // earningDate.getDate();
-      // earningDate.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
-      // earningDate.getFullYear();
-
-      // console.log("BATAS", earningDate.getDay());
-      // console.log("HARI INI ", today.getDay());
-
-      // // Bandingkan tahun, bulan, dan tanggal dari tanggal akhir dengan tanggal saat ini
-      // if (earningDate.getTime() <= today.getTime()) {
-      //   // Lakukan update jika tanggal akhir lebih besar dari hari ini
-      //   const endOfMonth = new Date(
-      //     today.getFullYear(),
-      //     today.getMonth() + 1,
-      //     0
-      //   );
-      //   const endOfMonthISO = new Date(
-      //     endOfMonth.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
-      //   ).toISOString();
-
-      // Buat entitas baru jika tidak ada data atau tanggal akhir sama dengan hari ini
-      // await prisma.pendapatanHarian.create({
-      //   data: {
-      //     keuntungan: keuntungan,
-      //     modalAwal: modalAwal,
-      //     totalPendapatan: totalAkhir,
-      //     tanggal: currentTimeISO,
-      //     tanggal_akhir: tomorrowISO,
-      //   },
-      // });
-      // console.log(
-      //   `Pendapatan harian Entitas baru dibuat untuk periode dari ${currentTimeISO} hingga ${endOfMonthISO}`
-      // );
-      // } else {
-      //   await prisma.pendapatanHarian.update({
-      //     where: { id: existingEarnings.id },
-      //     data: {
-      //       keuntungan: { increment: keuntungan },
-      //       modalAwal: { increment: modalAwal },
-      //       totalPendapatan: { increment: totalAkhir },
-      //     },
-      //   });
-      //   console.log(
-      //     `Pendapatan harian Data diperbarui untuk periode dari ${currentTimeISOs} hingga ${currentTimeISOs}`
-      //   );
-      // }
     } else {
       console.log("Pendapatan Harian Di Buat");
       await prisma.pendapatanHarian.create({
@@ -271,7 +225,7 @@ export const createdTransactions = async (req, res) => {
       console.log("Entitas Saldo dibuat");
       await prisma.sadoKas.create({
         data: {
-          nominal: keuntungan,
+          nominal: earning,
           tanggal: isoString,
           tanggal_akhir: new Date(
             lastDayOfMonth.getFullYear(),
@@ -287,27 +241,12 @@ export const createdTransactions = async (req, res) => {
           id: findSaldo.id,
         },
         data: {
-          nominal: { increment: keuntungan },
+          nominal: { increment: earning },
         },
       });
     }
 
-    // const hari = new Date();
-
-    // Mengonversi latestEarning.tanggal_akhir ke format tanggal bulan tahun (tanpa jam)
-    // const latestEarningDate = new Date(latestEarning?.tanggal_akhir);
-    // const latestEarningFormattedDate = new Date(
-    //   latestEarningDate.getFullYear(),
-    //   latestEarningDate.getMonth(),
-    //   latestEarningDate.getDate()
-    // );
-
-    // // Mengonversi today ke format tanggal bulan tahun (tanpa jam)
-    // const todayFormattedDate = new Date(
-    //   hari.getFullYear(),
-    //   hari.getMonth(),
-    //   hari.getDate()
-    // );
+  
 
     if (!latestEarning) {
       console.log("Pendapatan Earning Di buat");
@@ -318,32 +257,7 @@ export const createdTransactions = async (req, res) => {
           tanggal_akhir: tomorrowISO,
         },
       });
-      // if (latestEarningDate.getTime() <= hari.getTime()) {
-      //   console.log("data ditambahkan", currentTimeWIB);
-      //   await prisma.earning.create({
-      //     data: {
-      //       uang_masuk: totalAkhir,
-      //       tanggal: currentTimeISO,
-      //       tanggal_akhir: tomorrowISO,
-      //     },
-      //   });
-      //   } else {
-      //     console.log("data diupdated", currentTimeWIB);
-      //     await prisma.earning.updateMany({
-      //       where: {
-      //         id: latestEarning.id,
-      //       },
-      //       data: { uang_masuk: { increment: totalAkhir } },
-      //     });
-      //   }
-      // } else {
-      //   await prisma.earning.create({
-      //     data: {
-      //       uang_masuk: totalAkhir,
-      //       tanggal: currentTimeISO,
-      //       tanggal_akhir: tomorrowISO,
-      //     },
-      //   });
+ 
     } else {
       console.log("Pendapatan Earning Di perbarui");
       await prisma.earning.updateMany({
