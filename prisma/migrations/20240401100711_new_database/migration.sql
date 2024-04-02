@@ -68,7 +68,29 @@ CREATE TABLE `PendapatanHarian` (
     `keuntungan` INTEGER NOT NULL DEFAULT 0,
     `totalPendapatan` INTEGER NOT NULL DEFAULT 0,
     `modalAwal` INTEGER NOT NULL DEFAULT 0,
+    `totalKeuntungan` INTEGER NOT NULL DEFAULT 0,
     `tanggal` DATETIME(3) NOT NULL,
+    `tanggal_akhir` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Peminjamans` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `nama` VARCHAR(191) NOT NULL,
+    `ket` TEXT NOT NULL,
+    `nominal` INTEGER NOT NULL DEFAULT 0,
+    `tanggal` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `SadoKas` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `nominal` INTEGER NOT NULL DEFAULT 0,
+    `tanggal` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `tanggal_akhir` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`id`)

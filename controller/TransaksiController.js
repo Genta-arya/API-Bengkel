@@ -75,6 +75,8 @@ export const createdTransactions = async (req, res) => {
     }
 
     const totalAkhir = total + serviceCost;
+    const untung = totalAkhir - serviceCost
+
 
     let modalAwal = 0;
 
@@ -83,7 +85,7 @@ export const createdTransactions = async (req, res) => {
     }
 
     const earning = totalAkhir;
-    const keuntungan = earning - currentModal;
+    const keuntungan = untung - currentModal;
 
     if (existingPendapatanId) {
       await prisma.pendapatan.update({
@@ -104,6 +106,7 @@ export const createdTransactions = async (req, res) => {
         },
       });
     }
+    console.log("ini keuntungan", keuntungan)
 
     // handle pendapatanHarian
     const todayss = new Date().toLocaleString("en-US", {
