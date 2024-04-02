@@ -24,8 +24,21 @@ export const createdTransactions = async (req, res) => {
     const serviceCost = parseInt(service, 10);
 
     // Check if nama is not null or undefined
-    if (!nama) {
-      return res.status(400).json({ error: "Nama is required" });
+    if (
+      !nama ||
+      !barangId ||
+      !alamat ||
+      !motor ||
+      !detail ||
+      !jumlah ||
+      !mekanikId ||
+      !service ||
+      !noHp ||
+      !nopol
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Form tidak boleh ada yang kosong" });
     }
 
     // Convert barangId and jumlah from comma-separated strings to arrays of integers
@@ -75,8 +88,7 @@ export const createdTransactions = async (req, res) => {
     }
 
     const totalAkhir = total + serviceCost;
-    const untung = totalAkhir - serviceCost
-
+    const untung = totalAkhir - serviceCost;
 
     let modalAwal = 0;
 
@@ -106,7 +118,7 @@ export const createdTransactions = async (req, res) => {
         },
       });
     }
-    console.log("ini keuntungan", keuntungan)
+    console.log("ini keuntungan", keuntungan);
 
     // handle pendapatanHarian
     const todayss = new Date().toLocaleString("en-US", {
@@ -179,7 +191,6 @@ export const createdTransactions = async (req, res) => {
         },
       });
       console.log("Pendapatan Harian Di Perbarui");
-
     } else {
       console.log("Pendapatan Harian Di Buat");
       await prisma.pendapatanHarian.create({
@@ -249,8 +260,6 @@ export const createdTransactions = async (req, res) => {
       });
     }
 
-  
-
     if (!latestEarning) {
       console.log("Pendapatan Earning Di buat");
       await prisma.earning.create({
@@ -260,7 +269,6 @@ export const createdTransactions = async (req, res) => {
           tanggal_akhir: tomorrowISO,
         },
       });
- 
     } else {
       console.log("Pendapatan Earning Di perbarui");
       await prisma.earning.updateMany({
@@ -421,9 +429,22 @@ export const createdTransaksiWithounItem = async (req, res) => {
     const { nama, alamat, motor, detail, mekanikId, service, noHp, nopol } =
       req.body;
 
+    if (
+      !nama ||
+      !alamat ||
+      !motor ||
+      !detail ||
+      !mekanikId ||
+      !service ||
+      !noHp ||
+      !nopol
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Form tidak boleh ada yang kosong" });
+    }
     const parseService = parseInt(service, 10);
     const mekanikIds = parseInt(mekanikId, 10);
-
     const existingPendapatan = await prisma.pendapatan.findFirst();
 
     let existingPendapatanId = null;
@@ -870,8 +891,8 @@ export const getAllTransaction = async (req, res) => {
 
     const pendapatanKotor = totalService + total;
 
-    console.log("total service",totalService)
-    console.log("total",total)
+    console.log("total service", totalService);
+    console.log("total", total);
 
     const formatDate = (date) => {
       const day = date.getDate().toString().padStart(2, "0");
