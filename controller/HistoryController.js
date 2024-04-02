@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export const getHistory = async (req, res) => {
-  const { page = 1, perPage = 5 } = req.query;
+  const { page = 1, perPage = 10 } = req.query;
 
   const skip = (page - 1) * perPage;
   const take = perPage;
@@ -40,7 +40,7 @@ export const getHistory = async (req, res) => {
 };
 
 export const getHistoryManageItem = async (req, res) => {
-  const { page = 1, perPage = 5, category = "all" } = req.query;
+  const { page = 1, perPage = 20, category = "all" } = req.query;
 
   const skip = (page - 1) * perPage;
   const take = parseInt(perPage);
