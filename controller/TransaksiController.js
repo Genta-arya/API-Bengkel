@@ -775,10 +775,10 @@ export const getTransaction = async (req, res) => {
 
     const totalPages = Math.ceil(totalTransactions / parseInt(limit));
 
-    const reversedTransactions = transactions.reverse();
+   
 
     res.status(200).json({
-      data: reversedTransactions,
+      data: transactions,
       totalPage: totalPages,
       currentPage: parseInt(page),
     });
