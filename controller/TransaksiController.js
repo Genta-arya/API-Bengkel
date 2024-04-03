@@ -765,7 +765,7 @@ export const getTransaction = async (req, res) => {
         },
       },
       orderBy:{
-        tanggal:"desc"
+        id:"desc"
       },
       skip: offset,
       take: parseInt(limit),
