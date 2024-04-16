@@ -608,7 +608,7 @@ export const createdTransaksiWithounItem = async (req, res) => {
         // Buat entitas baru karena tanggal hari ini sudah melewati tanggal akhir
         await prisma.gajiMekanik.create({
           data: {
-            jumlah: parseInt(serviceCost),
+            jumlah: parseInt(parseService),
             tanggal: startDateISO,
             tanggal_akhir: endDatesISO,
             mekanikId: mekanikIds,

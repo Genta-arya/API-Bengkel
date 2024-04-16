@@ -88,14 +88,11 @@ router.put("/dana/pinjam/:id",Middleware, EditPinjamDana);
 router.delete("/dana/pinjam/:id", Middleware,deleteDana);
 
 
-// Message Controller
-// router.get("/qrchat",getQr)
-// router.post("/send-whatsapp",sendWhatsAppMessage)
 
 // Histroy Controller
 router.get("/history", getHistory);
 router.get("/data", getData);
 
-// router.post("/message", sendMessage);
+
 
 export default router;
