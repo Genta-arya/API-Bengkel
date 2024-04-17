@@ -1220,13 +1220,6 @@ export const getMoneyTracking = async (req, res) => {
       const latestEarningDate = data[0].tanggal_akhir;
       const thisday = data[0].tanggal;
 
-      // console.log(latestEarningDate.toLocaleDateString());
-      // console.log(today.toLocaleDateString());
-
-      // if (latestEarningDate.getTime() < today.getTime()) {
-      //   // Jika tanggal sama dengan hari ini, kosongkan data
-      //   data.length = 0;
-      // }
 
       // Array nama hari dalam Bahasa Indonesia
       const namaHari = [
@@ -1279,23 +1272,3 @@ export const getMoneyTracking = async (req, res) => {
   }
 };
 
-// const today = pendapatanHarianData[0].tanggal;
-// const startDates = new Date(
-//   today.getFullYear(),
-//   today.getMonth(),
-//   today.getDate()
-// );
-
-// let endDates = new Date(startDates);
-
-// if (startDates.getMonth() !== 11) {
-//   endDates.setMonth(endDates.getMonth() + 1);
-// } else {
-//   endDates.setFullYear(endDates.getFullYear() + 1);
-// }
-
-// if (today.getMonth() !== 11) {
-//   endDates.setMonth(endDates.getMonth() + 1);
-// } else {
-//   endDates.setFullYear(endDates.getFullYear() + 1);
-// }

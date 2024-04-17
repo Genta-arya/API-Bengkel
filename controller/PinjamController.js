@@ -252,6 +252,9 @@ export const GetMyDana = async (req, res) => {
             ),
           },
         },
+        orderBy:{
+          tanggal:"desc"
+        }
       });
      
     } else {
@@ -266,6 +269,9 @@ export const GetMyDana = async (req, res) => {
             ).toISOString(),
           },
         },
+        orderBy:{
+          tanggal:"desc"
+        }
       });
     }
 

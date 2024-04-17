@@ -166,3 +166,5 @@ model auth {
   token_jwt String? @unique @db.VarChar(255)
   otp       String?
 }
+
+
