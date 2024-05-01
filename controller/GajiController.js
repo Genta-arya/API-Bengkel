@@ -58,3 +58,42 @@ export const getGajiTeknisi = async (req, res) => {
     await prisma.$disconnect();
   }
 };
+
+
+export const editPeriode = async(req,res) => {
+  const {id} = req.params
+  const {date} = req.body
+  const formattedDate = new Date(date).toISOString();
+
+  const parseId = parseInt(id,10)
+  console.log(date)
+  if (!date) return res.status(400).json({message:"Required Date"})
+
+  if (!id) return res.status(400).json({message:"Required Id"})
+  try {
+    let data = await prisma.gajiMekanik.findUnique({
+      where: {
+        id: parseId
+      }
+    });
+
+    if (!data) return res.status(404).json({ message: "Gaji Tidak ditemukan" });
+
+    // Update the salary and date
+    data = await prisma.gajiMekanik.update({
+      where: {
+        id: parseId
+      },
+      data: {
+        
+        tanggal_akhir: formattedDate // Assuming 'date' is the field to update
+      }
+    });
+    res.status(201).json({ message:"Data berhasil diubah"});
+  }  catch (error) {
+    console.error("Error retrieving gaji teknisi:", error);
+    res.status(500).json({ error: "Internal server error" });
+  } finally {
+    await prisma.$disconnect();
+  }
+}

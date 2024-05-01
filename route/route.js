@@ -41,7 +41,7 @@ import {
 
 import { Middleware, MiddlewareEarning } from "../controller/Midleware.js";
 import { getData } from "../controller/getdata.js";
-import { getGajiTeknisi } from "../controller/GajiController.js";
+import { editPeriode, getGajiTeknisi } from "../controller/GajiController.js";
 import { EditPinjamDana, GetMyDana, PinjamDana, deleteDana } from "../controller/PinjamController.js";
 
 const router = express.Router();
@@ -70,6 +70,7 @@ router.post("/mekanik", Middleware, createMekanik);
 router.put("/mekanik/:id", Middleware, EditMekanik);
 router.delete("/mekanik/:id", Middleware, DeleteMekanik);
 router.get("/salary/teknisi", getGajiTeknisi);
+router.put("/salary/teknisi/:id", Middleware,editPeriode)
 
 // Transaksi Controller
 router.post("/transaksi", createdTransactions);
