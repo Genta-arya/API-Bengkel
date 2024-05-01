@@ -342,25 +342,9 @@ export const EditBarang = async (req, res) => {
           tanggal_akhir: tomorrowISO,
         },
       });
-      // } else {
-      //   console.log("data diupdated", currentTimeWIB);
-      // await prisma.earning.updateMany({
-      //   where: {
-      //     id: latestEarning.id,
-      //   },
-      //   data: {
-      //     uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
-      //   },
-      // });
-      // }
+     
     } else {
-      // await prisma.earning.create({
-      //   data: {
-      //     uang_keluar: { increment: parseDfirenet < 0 ? 0 : parseDfirenet },
-      //     tanggal: currentTimeISO,
-      //     tanggal_akhir: tomorrowISO,
-      //   },
-      // });
+    
       console.log("Updated Earning");
 
       await prisma.earning.updateMany({

@@ -764,8 +764,8 @@ export const getTransaction = async (req, res) => {
           },
         },
       },
-      orderBy:{
-        id:"desc"
+      orderBy: {
+        id: "desc",
       },
       skip: offset,
       take: parseInt(limit),
@@ -774,8 +774,6 @@ export const getTransaction = async (req, res) => {
     const totalTransactions = await prisma.transaksi.count();
 
     const totalPages = Math.ceil(totalTransactions / parseInt(limit));
-
-   
 
     res.status(200).json({
       data: transactions,
@@ -794,9 +792,6 @@ export const getAllTransaction = async (req, res) => {
   try {
     let startDates, endDates;
 
-    // const today = new Date();
-    // const startDates = new Date(today.getFullYear(), today.getMonth(), 1);
-    // const endDates = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     const { startDate } = req.query;
     console.log(startDate);
 
@@ -859,8 +854,6 @@ export const getAllTransaction = async (req, res) => {
       { totalPendapatan: totals[0], keuntungan: totals[1] },
     ];
 
-    // console.log(arrayPendapatan);
-
     const transaksi = await prisma.transaksi.findMany({
       include: {
         mekanik: true,
@@ -892,7 +885,20 @@ export const getAllTransaction = async (req, res) => {
       0
     );
 
-    const pendapatanKotor = totalService + total;
+    const pendapatanBersih = await prisma.sadoKas.findMany({
+      where: {
+        tanggal: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+    });
+
+    if (pendapatanBersih.length === 0) {
+      return res.status(404).json({ message: "Saldo Kas tidak ditemukan" });
+    }
+
+    console.log("pendapatan Bersih",pendapatanBersih);
 
     console.log("total service", totalService);
     console.log("total", total);
@@ -917,6 +923,7 @@ export const getAllTransaction = async (req, res) => {
       pendapatan: arrayPendapatan,
       periode,
       pendapatanKotor: total,
+      pendapatanBersih: pendapatanBersih[0].nominal
     });
   } catch (error) {
     console.error("Error fetching transactions:", error);
@@ -1098,24 +1105,6 @@ export const getChartDataHarian = async (req, res) => {
         });
         totalKeuntungan = data.reduce((acc, curr) => acc + curr.keuntungan, 0);
 
-        // Update totalKeuntungan di database
-        // const updateResult = await prisma.pendapatanHarian.updateMany({
-        //   where: {
-        //     tanggal_akhir: {
-        //       gte: startDates,
-        //       lte: endDates,
-        //     },
-        //   },
-        //   data: {
-        //     totalKeuntungan: totalKeuntungan,
-        //   },
-        // });
-
-        // if (updateResult.count > 0) {
-        //   console.log(`Total keuntungan berhasil diupdate: ${totalKeuntungan}`);
-        // } else {
-        //   console.log("Tidak ada data yang diupdate.");
-        // }
         break;
     }
 
@@ -1220,7 +1209,6 @@ export const getMoneyTracking = async (req, res) => {
       const latestEarningDate = data[0].tanggal_akhir;
       const thisday = data[0].tanggal;
 
-
       // Array nama hari dalam Bahasa Indonesia
       const namaHari = [
         "Minggu",
@@ -1271,4 +1259,3 @@ export const getMoneyTracking = async (req, res) => {
     await prisma.$disconnect();
   }
 };
-

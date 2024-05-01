@@ -140,7 +140,7 @@ export const isLoggIn = async (req, res) => {
       });
     }
 
-    const decodedToken = jwt.decode(token); // Decode token JWT
+    const decodedToken = jwt.decode(token); 
 
     if (decodedToken && decodedToken.exp < Date.now() / 1000) {
       const user = await prisma.auth.findUnique({
