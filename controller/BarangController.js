@@ -234,7 +234,7 @@ export const createBarang = async (req, res) => {
 };
 
 export const EditBarang = async (req, res) => {
-  const { nama, harga, stok, diskon, modal, service } = req.body;
+  const { nama, harga, stok, diskon=1, modal, service } = req.body;
   const parsedHarga = parseInt(harga);
   const parsedService = parseInt(service);
   const parsedStok = parseInt(stok);
