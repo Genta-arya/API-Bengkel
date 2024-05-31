@@ -1081,15 +1081,23 @@ export const getChartDataHarian = async (req, res) => {
 
     // const today = pendapatanHarianData[0].tanggal;
 
-    const today = new Date(); // Tanggal hari ini
-    const year = today.getFullYear();
-    const month = today.getMonth();
-
+    const today = new Date();
+    const isoToday = today.toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    });
+    const dateObj = new Date(isoToday);
+    const year = dateObj.getFullYear();
+    const month = dateObj.getMonth();
     switch (mode) {
       case "bulanan":
-        const today = new Date(); // Tanggal hari ini
-        const year = today.getFullYear();
-        const month = today.getMonth();
+       
+      const today = new Date();
+      const isoToday = today.toLocaleString("en-US", {
+        timeZone: "Asia/Jakarta",
+      });
+      const dateObj = new Date(isoToday);
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth();
         const startDates = new Date(year, month, 1); // Tanggal awal bulan
         const endDates = new Date(year, month + 1, 0); // Tanggal akhir bulan
         data = await prisma.pendapatanHarian.findMany({
