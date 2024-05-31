@@ -1135,6 +1135,7 @@ export const getChartDataHarian = async (req, res) => {
     const formattedEndDate = formatDate(endOfMonth);
 
     const formattedMessage = `Periode ${formattedStartDate} - ${formattedEndDate}`;
+    console.log(formattedStartDate)
 
     res.status(200).json({
       data,
