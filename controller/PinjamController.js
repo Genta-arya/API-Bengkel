@@ -191,37 +191,153 @@ export const EditPinjamDana = async (req, res) => {
   }
 };
 
+// export const GetMyDana = async (req, res) => {
+//   const { filter } = req.query;
+//   console.log(filter)
+//   const startDate = new Date(filter?.startDate); // Mengambil tanggal awal dari filter
+
+//   // Hitung tanggal terakhir dari bulan tersebut
+
+//   const today = new Date();
+//   const isoToday = today.toLocaleString("en-US", {
+//     timeZone: "Asia/Jakarta",
+//   });
+//   const dateObj = new Date(isoToday);
+//   const year = dateObj.getFullYear();
+//   const month = dateObj.getMonth();
+//   const lastDayOfMonth = new Date(year, month + 1);
+
+//   // lastDayOfMonth sekarang berisi tanggal terakhir dari bulan yang sesuai dengan filter.startDate
+//   console.log(lastDayOfMonth.toISOString());
+//   const startOfMonth = new Date(year, month, 1);
+//   const monthNameID = dateObj.toLocaleString("id-ID", { month: "long" });
+
+//   console.log("Nama bulan ini (Bahasa Indonesia):", monthNameID);
+//   try {
+//     const pendapatan = await prisma.sadoKas.findMany({
+//       where: {
+//         tanggal: {
+//           gte: startOfMonth,
+//           lt: new Date(
+//             dateObj.getFullYear(),
+//             dateObj.getMonth() + 1,
+//             0
+//           ).toISOString(),
+//         },
+//       },
+//       select: {
+//         id: true,
+//         nominal: true,
+//       },
+//       orderBy: { id: "desc" },
+//       take: 1,
+//     });
+
+//     if (pendapatan.length === 0) {
+//       return res
+//         .status(200)
+//         .json({ data: [], message: "Belum ada keuntungan", pendapatan: [] ,       bulan: monthNameID, });
+//     }
+
+//     let mydana;
+//     if (filter) {
+
+//       mydana = await prisma.peminjamans.findMany({
+//         where: {
+//           tanggal: {
+//             gte: startDate,
+//             lt: new Date(
+//               startDate.getFullYear(),
+//               startDate.getMonth(),
+//               startDate.getDate() + 1
+//             ),
+//           },
+//         },
+//         orderBy:{
+//           tanggal:"desc"
+//         }
+//       });
+
+//     } else {
+//       mydana = await prisma.peminjamans.findMany({
+//         where: {
+//           tanggal: {
+//             gte: startOfMonth,
+//             lt: new Date(
+//               dateObj.getFullYear(),
+//               dateObj.getMonth() + 1,
+//               0
+//             ).toISOString(),
+//           },
+//         },
+//         orderBy:{
+//           tanggal:"desc"
+//         }
+//       });
+//     }
+
+//     if (mydana.length === 0) {
+//       return res.status(200).json({
+//         data: [],
+//         message: "Belum ada pengeluaran",
+//         pendapatan: pendapatan,
+//         bulan:  monthNameID,
+//       });
+//     }
+//     console.log(mydana);
+
+//     res.status(200).json({
+//       message: "berhasil",
+//       data: mydana,
+//       pendapatan: pendapatan,
+
+//       bulan: monthNameID,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: "internal server error" });
+//   }
+// };
+
 export const GetMyDana = async (req, res) => {
-  const { filter } = req.body;
-  const startDate = new Date(filter?.startDate); // Mengambil tanggal awal dari filter
+  const { filter } = req.query;
+  console.log(filter);
 
-  // Hitung tanggal terakhir dari bulan tersebut
+  let startDate;
+  if (filter) {
+    const [year, month, day] = filter.split("-").map(Number);
+    startDate = new Date(year, month - 1, day);
+  }
 
-  const today = new Date();
+  console.log("Start Date:", startDate);
+
+  const today =
+    startDate instanceof Date && !isNaN(startDate) ? startDate : new Date();
   const isoToday = today.toLocaleString("en-US", {
     timeZone: "Asia/Jakarta",
   });
   const dateObj = new Date(isoToday);
+  const yearStart = dateObj.getFullYear();
+  const monthStart = dateObj.getMonth();
+
+  const startOfMonth = new Date(yearStart, monthStart, 1);
+  const endOfMonth = new Date(yearStart, monthStart + 1, 0, 23, 59, 59);
+
+  console.log("Start of Month:", startOfMonth.toISOString());
+  console.log("End of Month:", endOfMonth.toISOString());
+
   const year = dateObj.getFullYear();
   const month = dateObj.getMonth();
-  const lastDayOfMonth = new Date(year, month + 1);
 
-  // lastDayOfMonth sekarang berisi tanggal terakhir dari bulan yang sesuai dengan filter.startDate
-  console.log(lastDayOfMonth.toISOString());
-  const startOfMonth = new Date(year, month, 1);
-  const monthNameID = dateObj.toLocaleString("id-ID", { month: "long" });
-
+  const monthNameID = today.toLocaleString("id-ID", { month: "long" });
   console.log("Nama bulan ini (Bahasa Indonesia):", monthNameID);
+
   try {
     const pendapatan = await prisma.sadoKas.findMany({
       where: {
         tanggal: {
           gte: startOfMonth,
-          lt: new Date(
-            dateObj.getFullYear(),
-            dateObj.getMonth() + 1,
-            0
-          ).toISOString(),
+          lt: endOfMonth,
         },
       },
       select: {
@@ -233,30 +349,34 @@ export const GetMyDana = async (req, res) => {
     });
 
     if (pendapatan.length === 0) {
-      return res
-        .status(200)
-        .json({ data: [], message: "Belum ada keuntungan", pendapatan: [] ,       bulan: monthNameID, });
+      return res.status(200).json({
+        data: [],
+        message: "Belum ada keuntungan",
+        pendapatan: [],
+        bulan: monthNameID,
+      });
     }
 
     let mydana;
-    if (filter) {
-     
+    if (startDate) {
       mydana = await prisma.peminjamans.findMany({
         where: {
           tanggal: {
-            gte: startDate,
+            gte: new Date(dateObj.getFullYear(), dateObj.getMonth(), 1),
             lt: new Date(
-              startDate.getFullYear(),
-              startDate.getMonth(),
-              startDate.getDate() + 1
+              dateObj.getFullYear(),
+              dateObj.getMonth() + 1,
+              0,
+              23,
+              59,
+              59
             ),
           },
         },
-        orderBy:{
-          tanggal:"desc"
-        }
+        orderBy: {
+          tanggal: "desc",
+        },
       });
-     
     } else {
       mydana = await prisma.peminjamans.findMany({
         where: {
@@ -269,9 +389,9 @@ export const GetMyDana = async (req, res) => {
             ).toISOString(),
           },
         },
-        orderBy:{
-          tanggal:"desc"
-        }
+        orderBy: {
+          tanggal: "desc",
+        },
       });
     }
 
@@ -280,16 +400,16 @@ export const GetMyDana = async (req, res) => {
         data: [],
         message: "Belum ada pengeluaran",
         pendapatan: pendapatan,
-        bulan:  monthNameID,
+        bulan: monthNameID,
       });
     }
+
     console.log(mydana);
 
     res.status(200).json({
       message: "berhasil",
       data: mydana,
       pendapatan: pendapatan,
-
       bulan: monthNameID,
     });
   } catch (error) {
