@@ -138,6 +138,9 @@ export const createdTransactions = async (req, res) => {
 
     // Konversi kembali ke string ISO 8601 setelah jam diatur ke 00:00:00
     const isoString = dateObj.toISOString();
+    const day = today.getDate();
+    const month = today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
+    const year = today.getFullYear();
 
     const daypendapatan = new Date();
     const currentTimeWIB = new Date(
@@ -161,10 +164,6 @@ export const createdTransactions = async (req, res) => {
     console.log("jambesok", tomorrowISO);
 
     // Dapatkan waktu saat ini dalam format ISO
-
-    const day = today.getDate();
-    const month = today.getMonth() + 1; // Ingat bahwa bulan dimulai dari 0, maka ditambahkan 1
-    const year = today.getFullYear();
 
     today.setHours(0, 0, 0, 0); // Set jam ke 00:00:00
 
