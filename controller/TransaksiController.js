@@ -143,7 +143,7 @@ export const createdTransactions = async (req, res) => {
     const currentTimeWIB = new Date(
       daypendapatan.toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
     );
-
+    const endOfMonth = new Date(Date.UTC(year, month + 1, 0));
     const currentTimeISO = currentTimeWIB.toISOString();
 
     console.log("jam sekarang", currentTimeISO);
