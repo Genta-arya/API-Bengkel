@@ -152,6 +152,12 @@ export const createdTransactions = async (req, res) => {
     const tomorrow = new Date(currentTimeWIB);
     tomorrow.setDate(currentTimeWIB.getDate() + 1);
     const tomorrowISO = tomorrow.toISOString();
+    const isLastDayOfMonth =
+      currentTimeWIB.getDate() === endOfMonth.getUTCDate();
+    const tanggal_akhir = isLastDayOfMonth
+      ? currentTimeWIB.toISOString()
+      : tomorrowISO;
+    console.log("tanggal_akhir", tanggal_akhir);
     console.log("jambesok", tomorrowISO);
 
     // Dapatkan waktu saat ini dalam format ISO
@@ -199,7 +205,7 @@ export const createdTransactions = async (req, res) => {
           modalAwal: modalAwal,
           totalPendapatan: totalAkhir,
           tanggal: currentTimeISO,
-          tanggal_akhir: tomorrowISO,
+          tanggal_akhir: tanggal_akhir,
         },
       });
     }
@@ -898,7 +904,7 @@ export const getAllTransaction = async (req, res) => {
       return res.status(404).json({ message: "Saldo Kas tidak ditemukan" });
     }
 
-    console.log("pendapatan Bersih",pendapatanBersih);
+    console.log("pendapatan Bersih", pendapatanBersih);
 
     console.log("total service", totalService);
     console.log("total", total);
@@ -923,7 +929,7 @@ export const getAllTransaction = async (req, res) => {
       pendapatan: arrayPendapatan,
       periode,
       pendapatanKotor: total,
-      pendapatanBersih: pendapatanBersih[0].nominal
+      pendapatanBersih: pendapatanBersih[0].nominal,
     });
   } catch (error) {
     console.error("Error fetching transactions:", error);
@@ -1090,16 +1096,20 @@ export const getChartDataHarian = async (req, res) => {
     const month = dateObj.getMonth();
     switch (mode) {
       case "bulanan":
-       
-      const today = new Date();
-      const isoToday = today.toLocaleString("en-US", {
-        timeZone: "Asia/Jakarta",
-      });
-      const dateObj = new Date(isoToday);
-      const year = dateObj.getFullYear();
-      const month = dateObj.getMonth();
+        const today = new Date();
+        const isoToday = today.toLocaleString("en-US", {
+          timeZone: "Asia/Jakarta",
+        });
+        const dateObj = new Date(isoToday);
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth();
         const startDates = new Date(year, month, 1); // Tanggal awal bulan
         const endDates = new Date(year, month + 1, 0); // Tanggal akhir bulan
+
+        console.log(
+          "test",
+          startDates.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
+        );
         data = await prisma.pendapatanHarian.findMany({
           where: {
             tanggal_akhir: {
@@ -1143,7 +1153,7 @@ export const getChartDataHarian = async (req, res) => {
     const formattedEndDate = formatDate(endOfMonth);
 
     const formattedMessage = `Periode ${formattedStartDate} - ${formattedEndDate}`;
-    console.log(formattedStartDate)
+    console.log(formattedStartDate);
 
     res.status(200).json({
       data,
