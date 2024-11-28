@@ -40,23 +40,23 @@ export const createBarang = async (req, res) => {
     return res.status(401).json({ error: "Field tidak boleh kosong" });
   }
 
-  try {
-    const qrCodeData = `BRG-${uuidv4()}`;
+  // try {
+  //   const qrCodeData = `BRG-${uuidv4()}`;
 
-    const qrCodeBuffer = await generateQRCode(qrCodeData);
+  //   const qrCodeBuffer = await generateQRCode(qrCodeData);
 
-    if (!qrCodeBuffer) {
-      return res.status(500).json({ error: "Error generating QR code." });
-    }
+  //   if (!qrCodeBuffer) {
+  //     return res.status(500).json({ error: "Error generating QR code." });
+  //   }
 
-    const qrCodeFileName = `${qrCodeData}.png`;
-    const qrCodeFilePath = `QR/${qrCodeFileName}`;
-    const qrCodeFile = bucket.file(qrCodeFilePath);
-    await qrCodeFile.save(qrCodeBuffer, {
-      metadata: {
-        contentType: "image/png",
-      },
-    });
+  //   const qrCodeFileName = `${qrCodeData}.png`;
+  //   const qrCodeFilePath = `QR/${qrCodeFileName}`;
+  //   const qrCodeFile = bucket.file(qrCodeFilePath);
+  //   await qrCodeFile.save(qrCodeBuffer, {
+  //     metadata: {
+  //       contentType: "image/png",
+  //     },
+  //   });
 
     const existingProduct = await prisma.barang.findFirst({
       where: {
@@ -78,7 +78,7 @@ export const createBarang = async (req, res) => {
         diskon: parsedDiskon,
         modal: parsedModal,
         service: 0,
-        kode: qrCodeData,
+        kode: "-",
       },
     });
 
