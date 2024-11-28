@@ -56,7 +56,7 @@ router.post("/change/password",Middleware,changePassword)
 // produk Controller
 router.get("/produk", Middleware, getBarang);
 router.get("/all/produk", Middleware, getAllBarang);
-router.post("/produk", createBarang);
+router.post("/produk",Middleware , createBarang);
 router.put("/produk/:id", Middleware, EditBarang);
 router.delete("/produk/:id", Middleware, deleteBarang);
 router.get("/search/produk", Middleware, searchBarang);
