@@ -41,7 +41,7 @@ export const createBarang = async (req, res) => {
   }
 
   // try {
-  //   const qrCodeData = `BRG-${uuidv4()}`;
+    const qrCodeData = `BRG-${uuidv4()}`;
 
   //   const qrCodeBuffer = await generateQRCode(qrCodeData);
 
@@ -78,7 +78,7 @@ export const createBarang = async (req, res) => {
         diskon: parsedDiskon,
         modal: parsedModal,
         service: 0,
-        kode: "-",
+        kode: qrCodeData ,
       },
     });
 
