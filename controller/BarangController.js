@@ -215,9 +215,7 @@ export const createBarang = async (req, res) => {
       data: {
         barcode: qrCodeData,
         barangId: newBarang.id,
-        barcodeUrl: `https://firebasestorage.googleapis.com/v0/b/${
-          bucket.name
-        }/o/${encodeURIComponent(qrCodeFilePath)}?alt=media`,
+        barcodeUrl: `-`,
       },
     });
 
