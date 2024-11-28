@@ -40,7 +40,7 @@ export const createBarang = async (req, res) => {
     return res.status(401).json({ error: "Field tidak boleh kosong" });
   }
 
-  // try {
+  try {
     const qrCodeData = `BRG-${uuidv4()}`;
 
   //   const qrCodeBuffer = await generateQRCode(qrCodeData);
