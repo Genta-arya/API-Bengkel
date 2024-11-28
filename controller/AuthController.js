@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 
-const secretKey = "bengkelku";
+const secretKey = "bengkelkyuu";
 
 export const generateJWTToken = (user) => {
   const payload = {
