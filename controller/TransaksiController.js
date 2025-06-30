@@ -817,11 +817,20 @@ export const getAllTransaction = async (req, res) => {
       startDates.getMonth(),
       1
     );
-    const endOfMonth = new Date(
-      endDates.getFullYear(),
-      endDates.getMonth() + 1,
-      0
-    );
+    // const endOfMonth = new Date(
+    //   endDates.getFullYear(),
+    //   endDates.getMonth() + 1,
+    //   0
+    // );
+     const endOfMonth = new Date(
+  endDates.getFullYear(),
+  endDates.getMonth() + 1,
+  0,
+  23,
+  59,
+  59,
+  999
+);
 
     console.log("Awal bulan:", startOfMonth.toLocaleDateString());
     console.log("Akhir bulan:", endOfMonth.toLocaleDateString());
